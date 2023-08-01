@@ -18,6 +18,8 @@ class WebpEncoder extends AbstractEncoder implements EncoderInterface
 
     public function encode(ImageInterface $image): EncodedImage
     {
+        set_time_limit(300);
+
         $format = 'webp';
         $compression = Imagick::COMPRESSION_ZIP;
         $isAnimated = $image->isAnimated();
@@ -34,7 +36,7 @@ class WebpEncoder extends AbstractEncoder implements EncoderInterface
         $imagick->setCompression($compression);
         $imagick->setImageCompression($compression);
         $imagick->setImageCompressionQuality($this->quality);
-        $imagick->setOption('webp:method', '6');
+        $imagick->setOption('webp:method', '3');
 
         return new EncodedImage($imagick->getImagesBlob(), 'image/webp');
     }

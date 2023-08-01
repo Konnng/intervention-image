@@ -20,16 +20,21 @@ class WebpEncoder extends AbstractEncoder implements EncoderInterface
     {
         $format = 'webp';
         $compression = Imagick::COMPRESSION_ZIP;
+        $isAnimated = $image->isAnimated();
 
         $imagick = $image->getFrame()->getCore();
         $imagick->setImageBackgroundColor(new ImagickPixel('transparent'));
 
-        $imagick = $imagick->mergeImageLayers(Imagick::LAYERMETHOD_MERGE);
+        if (!$isAnimated) {
+            $imagick = $imagick->mergeImageLayers(Imagick::LAYERMETHOD_MERGE);
+        }
+
         $imagick->setFormat($format);
         $imagick->setImageFormat($format);
         $imagick->setCompression($compression);
         $imagick->setImageCompression($compression);
         $imagick->setImageCompressionQuality($this->quality);
+        $imagick->setOption('webp:method', '6');
 
         return new EncodedImage($imagick->getImagesBlob(), 'image/webp');
     }

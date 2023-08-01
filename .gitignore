@@ -1,4 +1,5 @@
 .idea/
+.history/
 build/
 vendor/
 .DS_Store

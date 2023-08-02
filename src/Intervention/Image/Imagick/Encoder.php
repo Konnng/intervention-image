@@ -75,11 +75,12 @@ class Encoder extends AbstractEncoder
 
     protected function processWebp()
     {
-        if ( ! \Imagick::queryFormats('WEBP')) {
+        if (!\Imagick::queryFormats('WEBP')) {
             throw new NotSupportedException(
                 "Webp format is not supported by Imagick installation."
             );
         }
+
 
         $format = 'webp';
         $compression = \Imagick::COMPRESSION_JPEG;
@@ -87,12 +88,16 @@ class Encoder extends AbstractEncoder
         $imagick = $this->image->getCore();
         $imagick->setImageBackgroundColor(new \ImagickPixel('transparent'));
 
-        $imagick = $imagick->mergeImageLayers(\Imagick::LAYERMETHOD_MERGE);
+        if ($imagick->getNumberImages() === 1) {
+            $imagick = $imagick->mergeImageLayers(\Imagick::LAYERMETHOD_MERGE);
+        }
+
         $imagick->setFormat($format);
         $imagick->setImageFormat($format);
         $imagick->setCompression($compression);
         $imagick->setImageCompression($compression);
         $imagick->setImageCompressionQuality($this->quality);
+        $imagick->setOption('webp:method', '6');
 
         return $imagick->getImagesBlob();
     }
@@ -190,7 +195,7 @@ class Encoder extends AbstractEncoder
      */
     protected function processAvif()
     {
-        if ( ! \Imagick::queryFormats('AVIF')) {
+        if (!\Imagick::queryFormats('AVIF')) {
             throw new NotSupportedException(
                 "AVIF format is not supported by Imagick installation."
             );
@@ -217,7 +222,7 @@ class Encoder extends AbstractEncoder
      */
     protected function processHeic()
     {
-        if ( ! \Imagick::queryFormats('HEIC')) {
+        if (!\Imagick::queryFormats('HEIC')) {
             throw new NotSupportedException(
                 "HEIC format is not supported by Imagick installation."
             );

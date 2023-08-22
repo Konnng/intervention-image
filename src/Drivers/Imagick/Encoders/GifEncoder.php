@@ -22,11 +22,15 @@ class GifEncoder extends AbstractEncoder implements EncoderInterface
         }
 
         $imagick = $image->getImagick();
+        $imagick = $imagick->coalesceImages();
+
         $imagick->setFormat($format);
         $imagick->setImageFormat($format);
         $imagick->setCompression($compression);
         $imagick->setImageCompression($compression);
-        $imagick = $imagick->deconstructImages();
+
+        // $imagick = $imagick->deconstructImages();
+        $imagick = $imagick->optimizeImageLayers();
 
         return new EncodedImage($imagick->getImagesBlob(), 'image/gif');
     }

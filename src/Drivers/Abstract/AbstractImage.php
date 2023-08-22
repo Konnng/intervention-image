@@ -334,6 +334,13 @@ abstract class AbstractImage implements ImageInterface
         );
     }
 
+    public function interlace(): ImageInterface
+    {
+        return $this->modify(
+            $this->resolveDriverClass('Modifiers\InterlaceModifier')
+        );
+    }
+
     public function destroy(): void
     {
         $this->modify(

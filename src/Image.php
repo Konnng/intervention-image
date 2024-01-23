@@ -68,6 +68,7 @@ use Intervention\Image\Modifiers\FlipModifier;
 use Intervention\Image\Modifiers\FlopModifier;
 use Intervention\Image\Modifiers\GammaModifier;
 use Intervention\Image\Modifiers\GreyscaleModifier;
+use Intervention\Image\Modifiers\InterlaceModifier;
 use Intervention\Image\Modifiers\InvertModifier;
 use Intervention\Image\Modifiers\PadModifier;
 use Intervention\Image\Modifiers\PixelateModifier;
@@ -832,6 +833,13 @@ final class Image implements ImageInterface
             new DrawLineModifier(
                 call_user_func(new LineFactory($init)),
             ),
+        );
+    }
+
+    public function interlace(): ImageInterface
+    {
+        return $this->modify(
+            new InterlaceModifier()
         );
     }
 

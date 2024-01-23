@@ -1,21 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Imagick\Encoders;
 
 use Imagick;
 use ImagickPixel;
-use Intervention\Image\Drivers\Abstract\Encoders\AbstractEncoder;
+use Intervention\Image\Drivers\DriverSpecializedEncoder;
 use Intervention\Image\EncodedImage;
-use Intervention\Image\Interfaces\EncoderInterface;
 use Intervention\Image\Interfaces\ImageInterface;
 
-class WebpEncoder extends AbstractEncoder implements EncoderInterface
+/**
+ * @property int $quality
+ */
+class WebpEncoder extends DriverSpecializedEncoder
 {
-    public function __construct(int $quality)
-    {
-        $this->quality = $quality;
-    }
-
     public function encode(ImageInterface $image): EncodedImage
     {
         set_time_limit(300);
@@ -24,7 +23,7 @@ class WebpEncoder extends AbstractEncoder implements EncoderInterface
         $compression = Imagick::COMPRESSION_ZIP;
         $isAnimated = $image->isAnimated();
 
-        $imagick = $image->getFrame()->getCore();
+        $imagick = $image->core()->native();
         $imagick->setImageBackgroundColor(new ImagickPixel('transparent'));
 
         if (!$isAnimated) {

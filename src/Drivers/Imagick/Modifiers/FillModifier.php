@@ -1,70 +1,71 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Imagick\Modifiers;
 
 use Imagick;
 use ImagickDraw;
-use Intervention\Image\Drivers\Imagick\Color;
+use ImagickPixel;
+use Intervention\Image\Drivers\DriverSpecialized;
 use Intervention\Image\Drivers\Imagick\Frame;
-use Intervention\Image\Geometry\Point;
 use Intervention\Image\Interfaces\ImageInterface;
+use Intervention\Image\Geometry\Point;
 use Intervention\Image\Interfaces\ModifierInterface;
 
-class FillModifier implements ModifierInterface
+/**
+ * @method bool hasPosition()
+ * @property mixed $color
+ * @property null|Point $position
+ */
+class FillModifier extends DriverSpecialized implements ModifierInterface
 {
-    public function __construct(
-        protected Color $color,
-        protected ?Point $position = null
-    ) {
-        //
-    }
-
     public function apply(ImageInterface $image): ImageInterface
     {
+        $color = $this->driver()->handleInput($this->color);
+        $pixel = $this->driver()
+            ->colorProcessor($image->colorspace())
+            ->colorToNative($color);
+
         foreach ($image as $frame) {
             if ($this->hasPosition()) {
-                $this->floodFillWithColor($frame);
+                $this->floodFillWithColor($frame, $pixel);
             } else {
-                $this->fillAllWithColor($frame);
+                $this->fillAllWithColor($frame, $pixel);
             }
         }
 
         return $image;
     }
 
-    protected function floodFillWithColor(Frame $frame): void
+    private function floodFillWithColor(Frame $frame, ImagickPixel $pixel): void
     {
-        $target = $frame->getCore()->getImagePixelColor(
-            $this->position->getX(),
-            $this->position->getY()
+        $target = $frame->native()->getImagePixelColor(
+            $this->position->x(),
+            $this->position->y()
         );
 
-        $frame->getCore()->floodfillPaintImage(
-            $this->color->getPixel(),
+        $frame->native()->floodfillPaintImage(
+            $pixel,
             100,
             $target,
-            $this->position->getX(),
-            $this->position->getY(),
+            $this->position->x(),
+            $this->position->y(),
             false,
             Imagick::CHANNEL_ALL
         );
     }
 
-    protected function fillAllWithColor(Frame $frame): void
+    private function fillAllWithColor(Frame $frame, ImagickPixel $pixel): void
     {
         $draw = new ImagickDraw();
-        $draw->setFillColor($this->color->getPixel());
+        $draw->setFillColor($pixel);
         $draw->rectangle(
             0,
             0,
-            $frame->getCore()->getImageWidth(),
-            $frame->getCore()->getImageHeight()
+            $frame->native()->getImageWidth(),
+            $frame->native()->getImageHeight()
         );
-        $frame->getCore()->drawImage($draw);
-    }
-
-    protected function hasPosition(): bool
-    {
-        return !empty($this->position);
+        $frame->native()->drawImage($draw);
     }
 }

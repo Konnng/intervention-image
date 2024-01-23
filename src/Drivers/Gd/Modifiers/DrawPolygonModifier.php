@@ -1,41 +1,49 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Gd\Modifiers;
 
-use Intervention\Image\Drivers\Abstract\Modifiers\AbstractDrawModifier;
-use Intervention\Image\Interfaces\DrawableInterface;
+use Intervention\Image\Drivers\AbstractDrawModifier;
+use Intervention\Image\Geometry\Polygon;
 use Intervention\Image\Interfaces\ImageInterface;
-use Intervention\Image\Interfaces\ModifierInterface;
+use Intervention\Image\Interfaces\ColorInterface;
 
-class DrawPolygonModifier extends AbstractDrawModifier implements ModifierInterface
+/**
+ * @method Point position()
+ * @method ColorInterface backgroundColor()
+ * @method ColorInterface borderColor()
+ * @property Polygon $drawable
+ */
+class DrawPolygonModifier extends AbstractDrawModifier
 {
-    public function __construct(
-        protected DrawableInterface $drawable
-    ) {
-        //
-    }
-
     public function apply(ImageInterface $image): ImageInterface
     {
-        return $image->eachFrame(function ($frame) {
-            if ($this->polygon()->hasBackgroundColor()) {
+        foreach ($image as $frame) {
+            if ($this->drawable->hasBackgroundColor()) {
+                imagealphablending($frame->native(), true);
                 imagefilledpolygon(
-                    $frame->getCore(),
-                    $this->polygon()->toArray(),
-                    $this->polygon()->count(),
-                    $this->getBackgroundColor()->toInt()
+                    $frame->native(),
+                    $this->drawable->toArray(),
+                    $this->driver()->colorProcessor($image->colorspace())->colorToNative(
+                        $this->backgroundColor()
+                    )
                 );
             }
 
-            if ($this->polygon()->hasBorder()) {
-                imagesetthickness($frame->getCore(), $this->polygon()->getBorderSize());
+            if ($this->drawable->hasBorder()) {
+                imagealphablending($frame->native(), true);
+                imagesetthickness($frame->native(), $this->drawable->borderSize());
                 imagepolygon(
-                    $frame->getCore(),
-                    $this->polygon()->toArray(),
-                    $this->polygon()->count(),
-                    $this->getBorderColor()->toInt()
+                    $frame->native(),
+                    $this->drawable->toArray(),
+                    $this->driver()->colorProcessor($image->colorspace())->colorToNative(
+                        $this->borderColor()
+                    )
                 );
             }
-        });
+        }
+
+        return $image;
     }
 }

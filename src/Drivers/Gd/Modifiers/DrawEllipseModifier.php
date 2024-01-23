@@ -1,53 +1,72 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Gd\Modifiers;
 
-use Intervention\Image\Drivers\Abstract\Modifiers\AbstractDrawModifier;
+use Intervention\Image\Drivers\AbstractDrawModifier;
+use Intervention\Image\Geometry\Ellipse;
 use Intervention\Image\Interfaces\ImageInterface;
-use Intervention\Image\Interfaces\ModifierInterface;
 
-class DrawEllipseModifier extends AbstractDrawModifier implements ModifierInterface
+/**
+ * @property Ellipse $drawable
+ */
+class DrawEllipseModifier extends AbstractDrawModifier
 {
     public function apply(ImageInterface $image): ImageInterface
     {
-        return $image->eachFrame(function ($frame) {
-            if ($this->ellipse()->hasBorder()) {
+        foreach ($image as $frame) {
+            if ($this->drawable->hasBorder()) {
+                imagealphablending($frame->native(), true);
+
                 // slightly smaller ellipse to keep 1px bordered edges clean
-                if ($this->ellipse()->hasBackgroundColor()) {
+                if ($this->drawable->hasBackgroundColor()) {
                     imagefilledellipse(
-                        $frame->getCore(),
-                        $this->position->getX(),
-                        $this->position->getY(),
-                        $this->ellipse()->getWidth() - 1,
-                        $this->ellipse()->getHeight() - 1,
-                        $this->getBackgroundColor()->toInt()
+                        $frame->native(),
+                        $this->position()->x(),
+                        $this->position()->y(),
+                        $this->drawable->width() - 1,
+                        $this->drawable->height() - 1,
+                        $this->driver()->colorProcessor($image->colorspace())->colorToNative(
+                            $this->backgroundColor()
+                        )
                     );
                 }
 
-                imagesetthickness($frame->getCore(), $this->ellipse()->getBorderSize());
+                // gd's imageellipse ignores imagesetthickness
+                // so i use imagearc with 360 degrees instead.
+                imagesetthickness(
+                    $frame->native(),
+                    $this->drawable->borderSize(),
+                );
 
-                // gd's imageellipse doesn't respect imagesetthickness so i use
-                // imagearc with 359.9 degrees here.
                 imagearc(
-                    $frame->getCore(),
-                    $this->position->getX(),
-                    $this->position->getY(),
-                    $this->ellipse()->getWidth(),
-                    $this->ellipse()->getHeight(),
+                    $frame->native(),
+                    $this->position()->x(),
+                    $this->position()->y(),
+                    $this->drawable->width(),
+                    $this->drawable->height(),
                     0,
-                    359.99,
-                    $this->getBorderColor()->toInt()
+                    360,
+                    $this->driver()->colorProcessor($image->colorspace())->colorToNative(
+                        $this->borderColor()
+                    )
                 );
             } else {
+                imagealphablending($frame->native(), true);
                 imagefilledellipse(
-                    $frame->getCore(),
-                    $this->position->getX(),
-                    $this->position->getY(),
-                    $this->ellipse()->getWidth(),
-                    $this->ellipse()->getHeight(),
-                    $this->getBackgroundColor()->toInt()
+                    $frame->native(),
+                    $this->position()->x(),
+                    $this->position()->y(),
+                    $this->drawable->width(),
+                    $this->drawable->height(),
+                    $this->driver()->colorProcessor($image->colorspace())->colorToNative(
+                        $this->backgroundColor()
+                    )
                 );
             }
-        });
+        }
+
+        return $image;
     }
 }

@@ -1,18 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Imagick\Modifiers;
 
+use Intervention\Image\Drivers\DriverSpecialized;
 use Intervention\Image\Drivers\Imagick\Frame;
 use Intervention\Image\Interfaces\ImageInterface;
 use Intervention\Image\Interfaces\ModifierInterface;
 
-class PixelateModifier implements ModifierInterface
+/**
+ * @property int $size
+ */
+class PixelateModifier extends DriverSpecialized implements ModifierInterface
 {
-    public function __construct(protected int $size)
-    {
-        //
-    }
-
     public function apply(ImageInterface $image): ImageInterface
     {
         foreach ($image as $frame) {
@@ -24,13 +25,13 @@ class PixelateModifier implements ModifierInterface
 
     protected function pixelateFrame(Frame $frame): void
     {
-        $size = $frame->getSize();
+        $size = $frame->size();
 
-        $frame->getCore()->scaleImage(
-            max(1, ($size->getWidth() / $this->size)),
-            max(1, ($size->getHeight() / $this->size))
+        $frame->native()->scaleImage(
+            (int) round(max(1, ($size->width() / $this->size))),
+            (int) round(max(1, ($size->height() / $this->size)))
         );
 
-        $frame->getCore()->scaleImage($size->getWidth(), $size->getHeight());
+        $frame->native()->scaleImage($size->width(), $size->height());
     }
 }

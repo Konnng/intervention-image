@@ -1,31 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Gd\Modifiers;
 
-use Intervention\Image\Interfaces\FrameInterface;
+use Intervention\Image\Drivers\DriverSpecialized;
 use Intervention\Image\Interfaces\ImageInterface;
 use Intervention\Image\Interfaces\ModifierInterface;
 
-class BlurModifier implements ModifierInterface
+/**
+ * @property int $amount
+ */
+class BlurModifier extends DriverSpecialized implements ModifierInterface
 {
-    public function __construct(protected int $amount)
-    {
-        //
-    }
-
     public function apply(ImageInterface $image): ImageInterface
     {
         foreach ($image as $frame) {
-            $this->blurFrame($frame);
+            for ($i = 0; $i < $this->amount; $i++) {
+                imagefilter($frame->native(), IMG_FILTER_GAUSSIAN_BLUR);
+            }
         }
 
         return $image;
-    }
-
-    protected function blurFrame(FrameInterface $frame): void
-    {
-        for ($i = 0; $i < $this->amount; $i++) {
-            imagefilter($frame->getCore(), IMG_FILTER_GAUSSIAN_BLUR);
-        }
     }
 }

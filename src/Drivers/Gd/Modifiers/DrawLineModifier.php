@@ -1,24 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Gd\Modifiers;
 
-use Intervention\Image\Drivers\Abstract\Modifiers\AbstractDrawModifier;
+use Intervention\Image\Drivers\AbstractDrawModifier;
 use Intervention\Image\Interfaces\ImageInterface;
-use Intervention\Image\Interfaces\ModifierInterface;
+use Intervention\Image\Interfaces\ColorInterface;
+use Intervention\Image\Geometry\Line;
 
-class DrawLineModifier extends AbstractDrawModifier implements ModifierInterface
+/**
+ * @method ColorInterface backgroundColor()
+ * @property Line $drawable
+ */
+class DrawLineModifier extends AbstractDrawModifier
 {
     public function apply(ImageInterface $image): ImageInterface
     {
-        return $image->eachFrame(function ($frame) {
+        foreach ($image as $frame) {
+            imagealphablending($frame->native(), true);
+            imageantialias($frame->native(), true);
             imageline(
-                $frame->getCore(),
-                $this->line()->getStart()->getX(),
-                $this->line()->getStart()->getY(),
-                $this->line()->getEnd()->getX(),
-                $this->line()->getEnd()->getY(),
-                $this->getBackgroundColor()->toInt()
+                $frame->native(),
+                $this->drawable->start()->x(),
+                $this->drawable->start()->y(),
+                $this->drawable->end()->x(),
+                $this->drawable->end()->y(),
+                $this->driver()->colorProcessor($image->colorspace())->colorToNative(
+                    $this->backgroundColor()
+                )
             );
-        });
+        }
+
+        return $image;
     }
 }

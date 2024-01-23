@@ -1,69 +1,126 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Imagick;
 
 use Imagick;
+use ImagickPixel;
 use Intervention\Image\Geometry\Rectangle;
+use Intervention\Image\Image;
+use Intervention\Image\Interfaces\DriverInterface;
 use Intervention\Image\Interfaces\FrameInterface;
 use Intervention\Image\Interfaces\ImageInterface;
 use Intervention\Image\Interfaces\SizeInterface;
 
 class Frame implements FrameInterface
 {
-    public function __construct(protected Imagick $core)
+    public function __construct(protected Imagick $native)
     {
-        //
+        $background = new ImagickPixel('rgba(255, 255, 255, 0)');
+        $this->native->setImageBackgroundColor($background);
+        $this->native->setBackgroundColor($background);
     }
 
-    public function setCore($core): FrameInterface
+    /**
+     * {@inheritdoc}
+     *
+     * @see DriverInterface::toImage()
+     */
+    public function toImage(DriverInterface $driver): ImageInterface
     {
-        $this->core = $core;
+        return new Image($driver, new Core($this->native()));
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see DriverInterface::setNative()
+     */
+    public function setNative($native): FrameInterface
+    {
+        $this->native = $native;
 
         return $this;
     }
 
-    public function getCore(): Imagick
+    /**
+     * {@inheritdoc}
+     *
+     * @see DriverInterface::native()
+     */
+    public function native(): Imagick
     {
-        return $this->core;
+        return $this->native;
     }
 
-    public function getSize(): SizeInterface
+    /**
+     * {@inheritdoc}
+     *
+     * @see DriverInterface::size()
+     */
+    public function size(): SizeInterface
     {
         return new Rectangle(
-            $this->core->getImageWidth(),
-            $this->core->getImageHeight()
+            $this->native->getImageWidth(),
+            $this->native->getImageHeight()
         );
     }
 
-    public function getDelay(): float
+    /**
+     * {@inheritdoc}
+     *
+     * @see DriverInterface::delay()
+     */
+    public function delay(): float
     {
-        return $this->core->getImageDelay() / 100;
+        return $this->native->getImageDelay() / 100;
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @see DriverInterface::setDelay()
+     */
     public function setDelay(float $delay): FrameInterface
     {
-        $this->core->setImageDelay(intval(round($delay * 100)));
+        $this->native->setImageDelay(intval(round($delay * 100)));
 
         return $this;
     }
 
-    public function getDispose(): int
+    /**
+     * {@inheritdoc}
+     *
+     * @see DriverInterface::dispose()
+     */
+    public function dispose(): int
     {
-        return $this->core->getImageDispose();
+        return $this->native->getImageDispose();
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @see DriverInterface::setDispose()
+     */
     public function setDispose(int $dispose): FrameInterface
     {
-        $this->core->setImageDispose($dispose);
+        $this->native->setImageDispose($dispose);
 
         return $this;
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @see DriverInterface::setOffset()
+     */
     public function setOffset(int $left, int $top): FrameInterface
     {
-        $this->core->setImagePage(
-            $this->core->getImageWidth(),
-            $this->core->getImageHeight(),
+        $this->native->setImagePage(
+            $this->native->getImageWidth(),
+            $this->native->getImageHeight(),
             $left,
             $top
         );
@@ -71,28 +128,43 @@ class Frame implements FrameInterface
         return $this;
     }
 
-    public function getOffsetLeft(): int
+    /**
+     * {@inheritdoc}
+     *
+     * @see DriverInterface::offsetLeft()
+     */
+    public function offsetLeft(): int
     {
-        return $this->core->getImagePage()['x'];
+        return $this->native->getImagePage()['x'];
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @see DriverInterface::setOffsetLeft()
+     */
     public function setOffsetLeft(int $offset): FrameInterface
     {
-        return $this->setOffset($offset, $this->getOffsetTop());
+        return $this->setOffset($offset, $this->offsetTop());
     }
 
-    public function getOffsetTop(): int
+    /**
+     * {@inheritdoc}
+     *
+     * @see DriverInterface::offsetTop()
+     */
+    public function offsetTop(): int
     {
-        return $this->core->getImagePage()['y'];
+        return $this->native->getImagePage()['y'];
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @see DriverInterface::setOffsetTop()
+     */
     public function setOffsetTop(int $offset): FrameInterface
     {
-        return $this->setOffset($this->getOffsetLeft(), $offset);
-    }
-
-    public function toImage(): ImageInterface
-    {
-        return new Image($this->getCore());
+        return $this->setOffset($this->offsetLeft(), $offset);
     }
 }

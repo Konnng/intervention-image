@@ -1,23 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Gd\Modifiers;
 
+use Intervention\Image\Drivers\DriverSpecialized;
+use Intervention\Image\Drivers\Gd\Cloner;
 use Intervention\Image\Interfaces\FrameInterface;
 use Intervention\Image\Interfaces\ImageInterface;
 use Intervention\Image\Interfaces\ModifierInterface;
 use Intervention\Image\Interfaces\SizeInterface;
 
-class ResizeModifier implements ModifierInterface
+/**
+ * @property null|int $width
+ * @property null|int $height
+ */
+class ResizeModifier extends DriverSpecialized implements ModifierInterface
 {
-    public function __construct(protected ?int $width = null, protected ?int $height = null)
-    {
-        //
-    }
-
     public function apply(ImageInterface $image): ImageInterface
     {
-        $resizeTo = $this->getAdjustedSize($image);
-
+        $resizeTo =  $this->getAdjustedSize($image);
         foreach ($image as $frame) {
             $this->resizeFrame($frame, $resizeTo);
         }
@@ -25,67 +27,31 @@ class ResizeModifier implements ModifierInterface
         return $image;
     }
 
-    protected function getAdjustedSize(ImageInterface $image): SizeInterface
+    private function resizeFrame(FrameInterface $frame, SizeInterface $resizeTo): void
     {
-        return $image->getSize()->resize($this->width, $this->height);
-    }
-
-    protected function resizeFrame(FrameInterface $frame, SizeInterface $resizeTo): void
-    {
-        // create new image
-        $modified = imagecreatetruecolor(
-            $resizeTo->getWidth(),
-            $resizeTo->getHeight()
-        );
-
-        // get current image
-        $current = $frame->getCore();
-
-        // preserve transparency
-        imagealphablending($modified, false);
-        $transIndex = imagecolortransparent($current);
-
-        if ($transIndex != -1) {
-            $rgba = imagecolorsforindex($modified, $transIndex);
-            $transColor = imagecolorallocatealpha($modified, $rgba['red'], $rgba['green'], $rgba['blue'], 127);
-            imagefill($modified, 0, 0, $transColor);
-        } else {
-            imagesavealpha($modified, true);
-        }
+        // create empty canvas in target size
+        $modified = Cloner::cloneEmpty($frame->native(), $resizeTo);
 
         // copy content from resource
         imagecopyresampled(
             $modified,
-            $current,
-            $resizeTo->getPivot()->getX(),
-            $resizeTo->getPivot()->getY(),
+            $frame->native(),
+            $resizeTo->pivot()->x(),
+            $resizeTo->pivot()->y(),
             0,
             0,
-            $resizeTo->getWidth(),
-            $resizeTo->getHeight(),
-            $frame->getSize()->getWidth(),
-            $frame->getSize()->getHeight()
+            $resizeTo->width(),
+            $resizeTo->height(),
+            $frame->size()->width(),
+            $frame->size()->height()
         );
 
-        imagedestroy($current);
-
-        if ($transIndex != -1) { // @todo refactor because of duplication
-            imagecolortransparent($modified, $transIndex);
-            for ($y = 0; $y < $resizeTo->getHeight(); ++$y) {
-                for ($x = 0; $x < $resizeTo->getWidth(); ++$x) {
-                    if (((imagecolorat($modified, $x, $y) >> 24) & 0x7F) >= 100) {
-                        imagesetpixel(
-                            $modified,
-                            $x,
-                            $y,
-                            $transIndex
-                        );
-                    }
-                }
-            }
-        }
-
         // set new content as recource
-        $frame->setCore($modified);
+        $frame->setNative($modified);
+    }
+
+    protected function getAdjustedSize(ImageInterface $image): SizeInterface
+    {
+        return $image->size()->resize($this->width, $this->height);
     }
 }

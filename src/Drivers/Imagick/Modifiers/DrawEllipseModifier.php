@@ -1,58 +1,50 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Imagick\Modifiers;
 
 use ImagickDraw;
-use Intervention\Image\Drivers\Abstract\Modifiers\AbstractDrawModifier;
-use Intervention\Image\Drivers\Imagick\Color;
-use Intervention\Image\Exceptions\DecoderException;
-use Intervention\Image\Interfaces\ColorInterface;
+use Intervention\Image\Drivers\AbstractDrawModifier;
 use Intervention\Image\Interfaces\ImageInterface;
-use Intervention\Image\Interfaces\ModifierInterface;
+use Intervention\Image\Geometry\Ellipse;
 
-class DrawEllipseModifier extends AbstractDrawModifier implements ModifierInterface
+/**
+ * @property Ellipse $drawable
+ */
+class DrawEllipseModifier extends AbstractDrawModifier
 {
     public function apply(ImageInterface $image): ImageInterface
     {
-        return $image->eachFrame(function ($frame) {
-            $drawing = new ImagickDraw();
-            $drawing->setFillColor($this->getBackgroundColor()->getPixel());
+        $background_color = $this->driver()->colorProcessor($image->colorspace())->colorToNative(
+            $this->backgroundColor()
+        );
 
-            if ($this->ellipse()->hasBorder()) {
-                $drawing->setStrokeWidth($this->ellipse()->getBorderSize());
-                $drawing->setStrokeColor($this->getBorderColor()->getPixel());
+        $border_color = $this->driver()->colorProcessor($image->colorspace())->colorToNative(
+            $this->borderColor()
+        );
+
+        foreach ($image as $frame) {
+            $drawing = new ImagickDraw();
+            $drawing->setFillColor($background_color);
+
+            if ($this->drawable->hasBorder()) {
+                $drawing->setStrokeWidth($this->drawable->borderSize());
+                $drawing->setStrokeColor($border_color);
             }
 
             $drawing->ellipse(
-                $this->position->getX(),
-                $this->position->getY(),
-                $this->ellipse()->getWidth() / 2,
-                $this->ellipse()->getHeight() / 2,
+                $this->position()->x(),
+                $this->position()->y(),
+                $this->drawable->width() / 2,
+                $this->drawable->height() / 2,
                 0,
                 360
             );
 
-            $frame->getCore()->drawImage($drawing);
-        });
-    }
-
-    protected function getBackgroundColor(): ColorInterface
-    {
-        $color = parent::getBackgroundColor();
-        if (!is_a($color, Color::class)) {
-            throw new DecoderException('Unable to decode background color.');
+            $frame->native()->drawImage($drawing);
         }
 
-        return $color;
-    }
-
-    protected function getBorderColor(): ColorInterface
-    {
-        $color = parent::getBorderColor();
-        if (!is_a($color, Color::class)) {
-            throw new DecoderException('Unable to decode border color.');
-        }
-
-        return $color;
+        return $image;
     }
 }

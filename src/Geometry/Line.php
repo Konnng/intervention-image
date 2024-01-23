@@ -1,29 +1,60 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Geometry;
 
 use Intervention\Image\Geometry\Traits\HasBackgroundColor;
 use Intervention\Image\Geometry\Traits\HasBorder;
 use Intervention\Image\Interfaces\DrawableInterface;
+use Intervention\Image\Interfaces\PointInterface;
 
 class Line implements DrawableInterface
 {
     use HasBorder;
     use HasBackgroundColor;
 
+    /**
+     * Create new line instance
+     *
+     * @param Point $start
+     * @param Point $end
+     * @param int $width
+     * @return void
+     */
     public function __construct(
         protected Point $start,
         protected Point $end,
         protected int $width = 1
     ) {
-        //
     }
 
-    public function getWidth(): int
+    /**
+     * {@inheritdoc}
+     *
+     * @see DrawableInterface::position()
+     */
+    public function position(): PointInterface
+    {
+        return $this->start;
+    }
+
+    /**
+     * Return line width
+     *
+     * @return int
+     */
+    public function width(): int
     {
         return $this->width;
     }
 
+    /**
+     * Set line width
+     *
+     * @param int $width
+     * @return Line
+     */
     public function setWidth(int $width): self
     {
         $this->width = $width;
@@ -31,28 +62,32 @@ class Line implements DrawableInterface
         return $this;
     }
 
-    public function width(int $width): self
-    {
-        return $this->setWidth($width);
-    }
-
-    public function color($color): self
-    {
-        $this->setBackgroundColor($color);
-
-        return $this;
-    }
-
-    public function getStart(): Point
+    /**
+     * Get starting point of line
+     *
+     * @return Point
+     */
+    public function start(): Point
     {
         return $this->start;
     }
 
-    public function getEnd(): Point
+    /**
+     * get end point of line
+     *
+     * @return Point
+     */
+    public function end(): Point
     {
         return $this->end;
     }
 
+    /**
+     * Set starting point of line
+     *
+     * @param Point $start
+     * @return Line
+     */
     public function setStart(Point $start): self
     {
         $this->start = $start;
@@ -60,22 +95,42 @@ class Line implements DrawableInterface
         return $this;
     }
 
+    /**
+     * Set starting point of line by coordinates
+     *
+     * @param int $x
+     * @param int $y
+     * @return Line
+     */
     public function from(int $x, int $y): self
     {
-        $this->getStart()->setX($x);
-        $this->getStart()->setY($y);
+        $this->start()->setX($x);
+        $this->start()->setY($y);
 
         return $this;
     }
 
+    /**
+     * Set end point of line by coordinates
+     *
+     * @param int $x
+     * @param int $y
+     * @return Line
+     */
     public function to(int $x, int $y): self
     {
-        $this->getEnd()->setX($x);
-        $this->getEnd()->setY($y);
+        $this->end()->setX($x);
+        $this->end()->setY($y);
 
         return $this;
     }
 
+    /**
+     * Set end point of line
+     *
+     * @param Point $end
+     * @return Line
+     */
     public function setEnd(Point $end): self
     {
         $this->end = $end;

@@ -1,17 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Geometry\Traits;
 
 trait HasBorder
 {
-    protected $borderColor = null;
-    protected $borderSize = 0;
+    protected mixed $borderColor = null;
+    protected int $borderSize = 0;
 
-    public function border($color, int $size = 1): self
+    /**
+     * {@inheritdoc}
+     *
+     * @see DrawableInterface::setBorder()
+     */
+    public function setBorder(mixed $color, int $size = 1): self
     {
         return $this->setBorderSize($size)->setBorderColor($color);
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @see DrawableInterface::setBorderSize()
+     */
     public function setBorderSize(int $size): self
     {
         $this->borderSize = $size;
@@ -19,23 +31,43 @@ trait HasBorder
         return $this;
     }
 
-    public function getBorderSize(): int
+    /**
+     * {@inheritdoc}
+     *
+     * @see DrawableInterface::borderSize()
+     */
+    public function borderSize(): int
     {
         return $this->borderSize;
     }
 
-    public function setBorderColor($color): self
+    /**
+     * {@inheritdoc}
+     *
+     * @see DrawableInterface::setBorderColor()
+     */
+    public function setBorderColor(mixed $color): self
     {
         $this->borderColor = $color;
 
         return $this;
     }
 
-    public function getBorderColor()
+    /**
+     * {@inheritdoc}
+     *
+     * @see DrawableInterface::borderColor()
+     */
+    public function borderColor(): mixed
     {
         return $this->borderColor;
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @see DrawableInterface::hasBorder()
+     */
     public function hasBorder(): bool
     {
         return $this->borderSize > 0 && !is_null($this->borderColor);

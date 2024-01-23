@@ -1,14 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Geometry;
 
 use Intervention\Image\Interfaces\PointInterface;
 
 class Point implements PointInterface
 {
-    public function __construct(protected int $x = 0, protected int $y = 0)
-    {
-        //
+    /**
+     * Create new point instance
+     *
+     * @param int $x
+     * @param int $y
+     * @return void
+     */
+    public function __construct(
+        protected int $x = 0,
+        protected int $y = 0
+    ) {
     }
 
     /**
@@ -28,7 +38,7 @@ class Point implements PointInterface
      *
      * @return integer
      */
-    public function getX(): int
+    public function x(): int
     {
         return $this->x;
     }
@@ -50,7 +60,7 @@ class Point implements PointInterface
      *
      * @return integer
      */
-    public function getY(): int
+    public function y(): int
     {
         return $this->y;
     }

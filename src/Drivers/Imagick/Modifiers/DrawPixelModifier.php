@@ -1,33 +1,35 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Imagick\Modifiers;
 
 use ImagickDraw;
-use Intervention\Image\Geometry\Point;
+use Intervention\Image\Drivers\DriverSpecialized;
 use Intervention\Image\Interfaces\ImageInterface;
 use Intervention\Image\Interfaces\ModifierInterface;
-use Intervention\Image\Traits\CanHandleInput;
+use Intervention\Image\Interfaces\PointInterface;
 
-class DrawPixelModifier implements ModifierInterface
+/**
+ * @property PointInterface $position
+ * @property mixed $color
+ */
+class DrawPixelModifier extends DriverSpecialized implements ModifierInterface
 {
-    use CanHandleInput;
-
-    public function __construct(
-        protected Point $position,
-        protected $color
-    ) {
-        //
-    }
-
     public function apply(ImageInterface $image): ImageInterface
     {
-        $color = $this->handleInput($this->color);
-        $pixel = new ImagickDraw();
-        $pixel->setFillColor($color->getPixel());
-        $pixel->point($this->position->getX(), $this->position->getY());
+        $color = $this->driver()->colorProcessor($image->colorspace())->colorToNative(
+            $this->driver()->handleInput($this->color)
+        );
 
-        return $image->eachFrame(function ($frame) use ($pixel) {
-            $frame->getCore()->drawImage($pixel);
-        });
+        $pixel = new ImagickDraw();
+        $pixel->setFillColor($color);
+        $pixel->point($this->position->x(), $this->position->y());
+
+        foreach ($image as $frame) {
+            $frame->native()->drawImage($pixel);
+        }
+
+        return $image;
     }
 }

@@ -1,34 +1,32 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Imagick\Modifiers;
 
-use Intervention\Image\Drivers\Abstract\Modifiers\AbstractRotateModifier;
-use Intervention\Image\Drivers\Imagick\Color;
-use Intervention\Image\Exceptions\DecoderException;
+use Intervention\Image\Drivers\DriverSpecialized;
 use Intervention\Image\Interfaces\ImageInterface;
 use Intervention\Image\Interfaces\ModifierInterface;
 
-class RotateModifier extends AbstractRotateModifier implements ModifierInterface
+/**
+ * @method mixed rotationAngle()
+ * @property mixed $background
+ */
+class RotateModifier extends DriverSpecialized implements ModifierInterface
 {
     public function apply(ImageInterface $image): ImageInterface
     {
-        $background = $this->backgroundColor();
-        if (!is_a($background, Color::class)) {
-            throw new DecoderException('Unable to decode given background color.');
-        }
+        $background = $this->driver()->colorProcessor($image->colorspace())->colorToNative(
+            $this->driver()->handleInput($this->background)
+        );
 
         foreach ($image as $frame) {
-            $frame->getCore()->rotateImage(
-                $background->getPixel(),
-                $this->rotationAngle()
+            $frame->native()->rotateImage(
+                $background,
+                $this->rotationAngle() * -1
             );
         }
 
         return $image;
-    }
-
-    protected function rotationAngle(): float
-    {
-        return parent::rotationAngle() * -1;
     }
 }

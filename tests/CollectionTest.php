@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Tests;
 
 use Intervention\Image\Collection;
+use Intervention\Image\Exceptions\RuntimeException;
 
 /**
  * @covers \Intervention\Image\Collection
@@ -45,6 +48,16 @@ class CollectionTest extends TestCase
         $this->assertEquals(3, count($collection));
     }
 
+    public function testFilter()
+    {
+        $collection = new Collection(['foo', 'bar', 'baz']);
+        $this->assertEquals(3, $collection->count());
+        $collection = $collection->filter(function ($text) {
+            return substr($text, 0, 1) == 'b';
+        });
+        $this->assertEquals(2, $collection->count());
+    }
+
     public function testFirstLast()
     {
         $collection = new Collection(['foo', 'bar', 'baz']);
@@ -65,35 +78,6 @@ class CollectionTest extends TestCase
         $this->assertInstanceOf(Collection::class, $result);
     }
 
-    public function testPushEach()
-    {
-        $collection = Collection::create()->pushEach(['foo', 'bar', 'baz'], function ($item) {
-            return strtoupper($item);
-        });
-        $this->assertEquals(3, $collection->count());
-        $this->assertEquals('FOO', $collection->get(0));
-        $this->assertEquals('BAR', $collection->get(1));
-        $this->assertEquals('BAZ', $collection->get(2));
-    }
-
-    public function testGet()
-    {
-        $collection = new Collection(['foo', 'bar', 'baz']);
-        $this->assertEquals('foo', $collection->get(0));
-        $this->assertEquals('bar', $collection->get(1));
-        $this->assertEquals('baz', $collection->get(2));
-        $this->assertNull($collection->get(3));
-        $this->assertEquals('test', $collection->get(3, 'test'));
-    }
-
-    public function testHas(): void
-    {
-        $collection = new Collection(['foo', 'bar']);
-        $this->assertTrue($collection->has(0));
-        $this->assertTrue($collection->has(1));
-        $this->assertFalse($collection->has(2));
-    }
-
     public function testToArray()
     {
         $collection = new Collection(['foo', 'bar', 'baz']);
@@ -112,11 +96,14 @@ class CollectionTest extends TestCase
         $this->assertEquals(['foo', 'bar', 'baz'], $mapped->toArray());
     }
 
-    public function testQuery(): void
+    public function testGet(): void
     {
         $collection = new Collection([
-            'foo' => 'FOO',
-            'bar' => 'BAR',
+            'first',
+            'second',
+            ['testx' => 'x'],
+            'foo' => 'foo_value',
+            'bar' => 'bar_value',
             'baz' => [
                 'test1' => '1',
                 'test2' => '2',
@@ -126,12 +113,61 @@ class CollectionTest extends TestCase
             ]
         ]);
 
-        $this->assertEquals('FOO', $collection->query('foo'));
-        $this->assertEquals('BAR', $collection->query('bar'));
-        $this->assertEquals('1', $collection->query('baz.test1'));
-        $this->assertEquals('2', $collection->query('baz.test2'));
-        $this->assertEquals('value', $collection->query('baz.test3.example'));
-        $this->assertEquals('value', $collection->query('baz.test3.example', 'default'));
-        $this->assertEquals('default', $collection->query('baz.test3.no', 'default'));
+        $this->assertEquals('first', $collection->get(0));
+        $this->assertEquals('second', $collection->get(1));
+        $this->assertEquals('first', $collection->get('0'));
+        $this->assertEquals('second', $collection->get('1'));
+        $this->assertEquals('x', $collection->get('2.testx'));
+        $this->assertEquals('foo_value', $collection->get('foo'));
+        $this->assertEquals('bar_value', $collection->get('bar'));
+        $this->assertEquals('1', $collection->get('baz.test1'));
+        $this->assertEquals('2', $collection->get('baz.test2'));
+        $this->assertEquals('value', $collection->get('baz.test3.example'));
+        $this->assertEquals('value', $collection->get('baz.test3.example', 'default'));
+        $this->assertEquals('default', $collection->get('baz.test3.no', 'default'));
+        $this->assertEquals(['example' => 'value'], $collection->get('baz.test3'));
+    }
+
+    public function testGetAtPosition(): void
+    {
+        $collection = new Collection([1, 2, 'foo' => 'bar']);
+        $this->assertEquals(1, $collection->getAtPosition(0));
+        $this->assertEquals(2, $collection->getAtPosition(1));
+        $this->assertEquals('bar', $collection->getAtPosition(2));
+        $this->assertNull($collection->getAtPosition(3));
+        $this->assertEquals('default', $collection->getAtPosition(3, 'default'));
+    }
+
+    public function testEmpty(): void
+    {
+        $collection = new Collection([1, 2, 3]);
+        $this->assertEquals(3, $collection->count());
+        $result = $collection->empty();
+        $this->assertEquals(0, $collection->count());
+        $this->assertEquals(0, $result->count());
+    }
+
+    public function testSlice(): void
+    {
+        $collection = new Collection(['a', 'b', 'c', 'd', 'e', 'f']);
+        $this->assertEquals(6, $collection->count());
+        $result = $collection->slice(0, 3);
+        $this->assertEquals(['a', 'b', 'c'], $collection->toArray());
+        $this->assertEquals(['a', 'b', 'c'], $result->toArray());
+        $this->assertEquals('a', $result->get(0));
+        $this->assertEquals('b', $result->get(1));
+        $this->assertEquals('c', $result->get(2));
+
+        $result = $collection->slice(2, 1);
+        $this->assertEquals(['c'], $collection->toArray());
+        $this->assertEquals(['c'], $result->toArray());
+        $this->assertEquals('c', $result->get(0));
+    }
+
+    public function testSliceOutOfBounds(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $collection = new Collection(['a', 'b', 'c']);
+        $collection->slice(6);
     }
 }

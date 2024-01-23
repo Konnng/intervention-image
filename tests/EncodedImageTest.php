@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Tests;
 
 use Intervention\Image\EncodedImage;
@@ -36,6 +38,15 @@ class EncodedImageTest extends TestCase
     {
         $image = new EncodedImage('foo', 'bar');
         $this->assertEquals('foo', (string) $image);
+    }
+
+    public function testMediaType(): void
+    {
+        $image = new EncodedImage('foo');
+        $this->assertEquals('application/octet-stream', $image->mediaType());
+
+        $image = new EncodedImage('foo', 'image/jpeg');
+        $this->assertEquals('image/jpeg', $image->mediaType());
     }
 
     public function testMimetype(): void

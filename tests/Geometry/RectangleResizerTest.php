@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Tests\Geometry;
 
 use Intervention\Image\Geometry\Point;
@@ -54,28 +56,28 @@ class RectangleResizerTest extends TestCase
         $resizer = new RectangleResizer();
         $resizer->toWidth(150);
         $result = $resizer->resize($size);
-        $this->assertEquals(150, $result->getWidth());
-        $this->assertEquals(200, $result->getHeight());
+        $this->assertEquals(150, $result->width());
+        $this->assertEquals(200, $result->height());
 
         $size = new Rectangle(300, 200);
         $resizer = new RectangleResizer();
         $resizer->toWidth(20);
         $resizer->toHeight(10);
         $result = $resizer->resize($size);
-        $this->assertEquals(20, $result->getWidth());
-        $this->assertEquals(10, $result->getHeight());
+        $this->assertEquals(20, $result->width());
+        $this->assertEquals(10, $result->height());
 
         $size = new Rectangle(300, 200);
         $resizer = new RectangleResizer(width: 150);
         $result = $resizer->resize($size);
-        $this->assertEquals(150, $result->getWidth());
-        $this->assertEquals(200, $result->getHeight());
+        $this->assertEquals(150, $result->width());
+        $this->assertEquals(200, $result->height());
 
         $size = new Rectangle(300, 200);
         $resizer = new RectangleResizer(height: 10, width: 20);
         $result = $resizer->resize($size);
-        $this->assertEquals(20, $result->getWidth());
-        $this->assertEquals(10, $result->getHeight());
+        $this->assertEquals(20, $result->width());
+        $this->assertEquals(10, $result->height());
     }
 
     public function testResizeDown()
@@ -86,8 +88,8 @@ class RectangleResizerTest extends TestCase
         $resizer->toWidth(1000);
         $resizer->toHeight(2000);
         $result = $resizer->resizeDown($size);
-        $this->assertEquals(800, $result->getWidth());
-        $this->assertEquals(600, $result->getHeight());
+        $this->assertEquals(800, $result->width());
+        $this->assertEquals(600, $result->height());
 
         // 800x600 > 400x1000 = 400x600
         $size = new Rectangle(800, 600);
@@ -95,8 +97,8 @@ class RectangleResizerTest extends TestCase
         $resizer->toWidth(400);
         $resizer->toHeight(1000);
         $result = $resizer->resizeDown($size);
-        $this->assertEquals(400, $result->getWidth());
-        $this->assertEquals(600, $result->getHeight());
+        $this->assertEquals(400, $result->width());
+        $this->assertEquals(600, $result->height());
 
         // 800x600 > 1000x400 = 800x400
         $size = new Rectangle(800, 600);
@@ -104,8 +106,8 @@ class RectangleResizerTest extends TestCase
         $resizer->toWidth(1000);
         $resizer->toHeight(400);
         $result = $resizer->resizeDown($size);
-        $this->assertEquals(800, $result->getWidth());
-        $this->assertEquals(400, $result->getHeight());
+        $this->assertEquals(800, $result->width());
+        $this->assertEquals(400, $result->height());
 
         // 800x600 > 400x300 = 400x300
         $size = new Rectangle(800, 600);
@@ -113,24 +115,24 @@ class RectangleResizerTest extends TestCase
         $resizer->toWidth(400);
         $resizer->toHeight(300);
         $result = $resizer->resizeDown($size);
-        $this->assertEquals(400, $result->getWidth());
-        $this->assertEquals(300, $result->getHeight());
+        $this->assertEquals(400, $result->width());
+        $this->assertEquals(300, $result->height());
 
         // 800x600 > 1000xnull = 800x600
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toWidth(1000);
         $result = $resizer->resizeDown($size);
-        $this->assertEquals(800, $result->getWidth());
-        $this->assertEquals(600, $result->getHeight());
+        $this->assertEquals(800, $result->width());
+        $this->assertEquals(600, $result->height());
 
         // 800x600 > nullx1000 = 800x600
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toHeight(1000);
         $result = $resizer->resizeDown($size);
-        $this->assertEquals(800, $result->getWidth());
-        $this->assertEquals(600, $result->getHeight());
+        $this->assertEquals(800, $result->width());
+        $this->assertEquals(600, $result->height());
     }
 
     public function testScale()
@@ -141,8 +143,8 @@ class RectangleResizerTest extends TestCase
         $resizer->toWidth(1000);
         $resizer->toHeight(2000);
         $result = $resizer->scale($size);
-        $this->assertEquals(1000, $result->getWidth());
-        $this->assertEquals(750, $result->getHeight());
+        $this->assertEquals(1000, $result->width());
+        $this->assertEquals(750, $result->height());
 
         // 800x600 > 2000x1000 = 1333x1000
         $size = new Rectangle(800, 600);
@@ -150,24 +152,24 @@ class RectangleResizerTest extends TestCase
         $resizer->toWidth(2000);
         $resizer->toHeight(1000);
         $result = $resizer->scale($size);
-        $this->assertEquals(1333, $result->getWidth());
-        $this->assertEquals(1000, $result->getHeight());
+        $this->assertEquals(1333, $result->width());
+        $this->assertEquals(1000, $result->height());
 
         // // 800x600 > nullx3000 = 4000x3000
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toHeight(3000);
         $result = $resizer->scale($size);
-        $this->assertEquals(4000, $result->getWidth());
-        $this->assertEquals(3000, $result->getHeight());
+        $this->assertEquals(4000, $result->width());
+        $this->assertEquals(3000, $result->height());
 
         // // 800x600 > 8000xnull = 8000x6000
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toWidth(8000);
         $result = $resizer->scale($size);
-        $this->assertEquals(8000, $result->getWidth());
-        $this->assertEquals(6000, $result->getHeight());
+        $this->assertEquals(8000, $result->width());
+        $this->assertEquals(6000, $result->height());
 
         // // 800x600 > 100x400 = 100x75
         $size = new Rectangle(800, 600);
@@ -175,8 +177,8 @@ class RectangleResizerTest extends TestCase
         $resizer->toWidth(100);
         $resizer->toHeight(400);
         $result = $resizer->scale($size);
-        $this->assertEquals(100, $result->getWidth());
-        $this->assertEquals(75, $result->getHeight());
+        $this->assertEquals(100, $result->width());
+        $this->assertEquals(75, $result->height());
 
         // // 800x600 > 400x100 = 133x100
         $size = new Rectangle(800, 600);
@@ -184,40 +186,40 @@ class RectangleResizerTest extends TestCase
         $resizer->toWidth(400);
         $resizer->toHeight(100);
         $result = $resizer->scale($size);
-        $this->assertEquals(133, $result->getWidth());
-        $this->assertEquals(100, $result->getHeight());
+        $this->assertEquals(133, $result->width());
+        $this->assertEquals(100, $result->height());
 
         // // 800x600 > nullx300 = 400x300
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toHeight(300);
         $result = $resizer->scale($size);
-        $this->assertEquals(400, $result->getWidth());
-        $this->assertEquals(300, $result->getHeight());
+        $this->assertEquals(400, $result->width());
+        $this->assertEquals(300, $result->height());
 
         // // 800x600 > 80xnull = 80x60
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toWidth(80);
         $result = $resizer->scale($size);
-        $this->assertEquals(80, $result->getWidth());
-        $this->assertEquals(60, $result->getHeight());
+        $this->assertEquals(80, $result->width());
+        $this->assertEquals(60, $result->height());
 
         // // 640x480 > 225xnull = 225x169
         $size = new Rectangle(640, 480);
         $resizer = new RectangleResizer();
         $resizer->toWidth(225);
         $result = $resizer->scale($size);
-        $this->assertEquals(225, $result->getWidth());
-        $this->assertEquals(169, $result->getHeight());
+        $this->assertEquals(225, $result->width());
+        $this->assertEquals(169, $result->height());
 
         // // 640x480 > 223xnull = 223x167
         $size = new Rectangle(640, 480);
         $resizer = new RectangleResizer();
         $resizer->toWidth(223);
         $result = $resizer->scale($size);
-        $this->assertEquals(223, $result->getWidth());
-        $this->assertEquals(167, $result->getHeight());
+        $this->assertEquals(223, $result->width());
+        $this->assertEquals(167, $result->height());
 
         // // 600x800 > 300x300 = 225x300
         $size = new Rectangle(600, 800);
@@ -225,8 +227,8 @@ class RectangleResizerTest extends TestCase
         $resizer->toWidth(300);
         $resizer->toHeight(300);
         $result = $resizer->scale($size);
-        $this->assertEquals(225, $result->getWidth());
-        $this->assertEquals(300, $result->getHeight());
+        $this->assertEquals(225, $result->width());
+        $this->assertEquals(300, $result->height());
 
         // // 800x600 > 400x10 = 13x10
         $size = new Rectangle(800, 600);
@@ -234,8 +236,8 @@ class RectangleResizerTest extends TestCase
         $resizer->toWidth(400);
         $resizer->toHeight(10);
         $result = $resizer->scale($size);
-        $this->assertEquals(13, $result->getWidth());
-        $this->assertEquals(10, $result->getHeight());
+        $this->assertEquals(13, $result->width());
+        $this->assertEquals(10, $result->height());
 
         // // 800x600 > 1000x1200 = 1000x750
         $size = new Rectangle(800, 600);
@@ -243,32 +245,39 @@ class RectangleResizerTest extends TestCase
         $resizer->toWidth(1000);
         $resizer->toHeight(1200);
         $result = $resizer->scale($size);
-        $this->assertEquals(1000, $result->getWidth());
-        $this->assertEquals(750, $result->getHeight());
+        $this->assertEquals(1000, $result->width());
+        $this->assertEquals(750, $result->height());
 
         $size = new Rectangle(12000, 12);
         $resizer = new RectangleResizer();
         $resizer->toWidth(4000);
         $resizer->toHeight(3000);
         $result = $resizer->scale($size);
-        $this->assertEquals(4000, $result->getWidth());
-        $this->assertEquals(4, $result->getHeight());
+        $this->assertEquals(4000, $result->width());
+        $this->assertEquals(4, $result->height());
 
         $size = new Rectangle(12, 12000);
         $resizer = new RectangleResizer();
         $resizer->toWidth(4000);
         $resizer->toHeight(3000);
         $result = $resizer->scale($size);
-        $this->assertEquals(3, $result->getWidth());
-        $this->assertEquals(3000, $result->getHeight());
+        $this->assertEquals(3, $result->width());
+        $this->assertEquals(3000, $result->height());
 
         $size = new Rectangle(12000, 6000);
         $resizer = new RectangleResizer();
         $resizer->toWidth(4000);
         $resizer->toHeight(3000);
         $result = $resizer->scale($size);
-        $this->assertEquals(4000, $result->getWidth());
-        $this->assertEquals(2000, $result->getHeight());
+        $this->assertEquals(4000, $result->width());
+        $this->assertEquals(2000, $result->height());
+
+        $size = new Rectangle(3, 3000);
+        $resizer = new RectangleResizer();
+        $resizer->toHeight(300);
+        $result = $resizer->scale($size);
+        $this->assertEquals(1, $result->width());
+        $this->assertEquals(300, $result->height());
     }
 
     public function testScaleDown()
@@ -278,91 +287,98 @@ class RectangleResizerTest extends TestCase
         $resizer->toWidth(1000);
         $resizer->toHeight(2000);
         $result = $resizer->scaleDown($size);
-        $this->assertEquals(800, $result->getWidth());
-        $this->assertEquals(600, $result->getHeight());
+        $this->assertEquals(800, $result->width());
+        $this->assertEquals(600, $result->height());
 
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toWidth(1000);
         $resizer->toHeight(600);
         $result = $resizer->scaleDown($size);
-        $this->assertEquals(800, $result->getWidth());
-        $this->assertEquals(600, $result->getHeight());
+        $this->assertEquals(800, $result->width());
+        $this->assertEquals(600, $result->height());
 
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toWidth(1000);
         $resizer->toHeight(300);
         $result = $resizer->scaleDown($size);
-        $this->assertEquals(400, $result->getWidth());
-        $this->assertEquals(300, $result->getHeight());
+        $this->assertEquals(400, $result->width());
+        $this->assertEquals(300, $result->height());
 
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toWidth(400);
         $resizer->toHeight(1000);
         $result = $resizer->scaleDown($size);
-        $this->assertEquals(400, $result->getWidth());
-        $this->assertEquals(300, $result->getHeight());
+        $this->assertEquals(400, $result->width());
+        $this->assertEquals(300, $result->height());
 
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toWidth(400);
         $result = $resizer->scaleDown($size);
-        $this->assertEquals(400, $result->getWidth());
-        $this->assertEquals(300, $result->getHeight());
+        $this->assertEquals(400, $result->width());
+        $this->assertEquals(300, $result->height());
 
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toHeight(300);
         $result = $resizer->scaleDown($size);
-        $this->assertEquals(400, $result->getWidth());
-        $this->assertEquals(300, $result->getHeight());
+        $this->assertEquals(400, $result->width());
+        $this->assertEquals(300, $result->height());
 
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toWidth(1000);
         $result = $resizer->scaleDown($size);
-        $this->assertEquals(800, $result->getWidth());
-        $this->assertEquals(600, $result->getHeight());
+        $this->assertEquals(800, $result->width());
+        $this->assertEquals(600, $result->height());
 
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toHeight(1000);
         $result = $resizer->scaleDown($size);
-        $this->assertEquals(800, $result->getWidth());
-        $this->assertEquals(600, $result->getHeight());
+        $this->assertEquals(800, $result->width());
+        $this->assertEquals(600, $result->height());
 
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toWidth(100);
         $result = $resizer->scaleDown($size);
-        $this->assertEquals(100, $result->getWidth());
-        $this->assertEquals(75, $result->getHeight());
+        $this->assertEquals(100, $result->width());
+        $this->assertEquals(75, $result->height());
 
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toWidth(300);
         $resizer->toHeight(200);
         $result = $resizer->scaleDown($size);
-        $this->assertEquals(267, $result->getWidth());
-        $this->assertEquals(200, $result->getHeight());
+        $this->assertEquals(267, $result->width());
+        $this->assertEquals(200, $result->height());
 
         $size = new Rectangle(600, 800);
         $resizer = new RectangleResizer();
         $resizer->toWidth(300);
         $resizer->toHeight(300);
         $result = $resizer->scaleDown($size);
-        $this->assertEquals(225, $result->getWidth());
-        $this->assertEquals(300, $result->getHeight());
+        $this->assertEquals(225, $result->width());
+        $this->assertEquals(300, $result->height());
 
         $size = new Rectangle(800, 600);
         $resizer = new RectangleResizer();
         $resizer->toWidth(400);
         $resizer->toHeight(10);
         $result = $resizer->scaleDown($size);
-        $this->assertEquals(13, $result->getWidth());
-        $this->assertEquals(10, $result->getHeight());
+        $this->assertEquals(13, $result->width());
+        $this->assertEquals(10, $result->height());
+
+        $size = new Rectangle(3, 3000);
+        $resizer = new RectangleResizer();
+        $resizer->toHeight(300);
+        $result = $resizer->scale($size);
+        $this->assertEquals(1, $result->width());
+        $this->assertEquals(300, $result->height());
     }
 
     /**
@@ -373,8 +389,8 @@ class RectangleResizerTest extends TestCase
         $resizer = new RectangleResizer();
         $resizer->toSize($target);
         $resized = $resizer->cover($origin);
-        $this->assertEquals($result->getWidth(), $resized->getWidth());
-        $this->assertEquals($result->getHeight(), $resized->getHeight());
+        $this->assertEquals($result->width(), $resized->width());
+        $this->assertEquals($result->height(), $resized->height());
     }
 
     public function coverDataProvider(): array
@@ -400,8 +416,8 @@ class RectangleResizerTest extends TestCase
         $resizer = new RectangleResizer();
         $resizer->toSize($target);
         $resized = $resizer->contain($origin);
-        $this->assertEquals($result->getWidth(), $resized->getWidth());
-        $this->assertEquals($result->getHeight(), $resized->getHeight());
+        $this->assertEquals($result->width(), $resized->width());
+        $this->assertEquals($result->height(), $resized->height());
     }
 
     public function containDataProvider(): array
@@ -427,10 +443,10 @@ class RectangleResizerTest extends TestCase
         $resizer = new RectangleResizer();
         $resizer->toSize($target);
         $resized = $resizer->crop($origin, $position);
-        $this->assertEquals($result->getWidth(), $resized->getWidth());
-        $this->assertEquals($result->getHeight(), $resized->getHeight());
-        $this->assertEquals($result->getPivot()->getX(), $resized->getPivot()->getX());
-        $this->assertEquals($result->getPivot()->getY(), $resized->getPivot()->getY());
+        $this->assertEquals($result->width(), $resized->width());
+        $this->assertEquals($result->height(), $resized->height());
+        $this->assertEquals($result->pivot()->x(), $resized->pivot()->x());
+        $this->assertEquals($result->pivot()->y(), $resized->pivot()->y());
     }
 
     public function cropDataProvider(): array

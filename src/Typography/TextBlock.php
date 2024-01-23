@@ -1,12 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Typography;
 
 use Intervention\Image\Collection;
-use Intervention\Image\Geometry\Point;
-use Intervention\Image\Geometry\Polygon;
-use Intervention\Image\Geometry\Rectangle;
-use Intervention\Image\Interfaces\FontInterface;
 
 class TextBlock extends Collection
 {
@@ -15,28 +13,6 @@ class TextBlock extends Collection
         foreach (explode("\n", $text) as $line) {
             $this->push(new Line($line));
         }
-    }
-
-    public function getBoundingBox(FontInterface $font, Point $pivot = null): Polygon
-    {
-        $pivot = $pivot ? $pivot : new Point();
-
-        // bounding box
-        $box = (new Rectangle(
-            $this->longestLine()->widthInFont($font),
-            $font->leadingInPixels() * ($this->count() - 1) + $font->capHeight()
-        ));
-
-        // set pivot
-        $box->setPivot($pivot);
-
-        // align
-        $box->align($font->getAlign());
-        $box->valign($font->getValign());
-
-        $box->rotate($font->getAngle());
-
-        return $box;
     }
 
     /**
@@ -49,7 +25,13 @@ class TextBlock extends Collection
         return $this->items;
     }
 
-    public function getLine($key): ?Line
+    /**
+     * Get line by given key
+     *
+     * @param mixed $key
+     * @return null|Line
+     */
+    public function line($key): ?Line
     {
         if (!array_key_exists($key, $this->lines())) {
             return null;
@@ -66,11 +48,11 @@ class TextBlock extends Collection
     public function longestLine(): Line
     {
         $lines = $this->lines();
-        usort($lines, function ($a, $b) {
-            if (mb_strlen($a) === mb_strlen($b)) {
+        usort($lines, function (Line $a, Line $b) {
+            if (mb_strlen((string) $a) === mb_strlen((string) $b)) {
                 return 0;
             }
-            return (mb_strlen($a) > mb_strlen($b)) ? -1 : 1;
+            return (mb_strlen((string) $a) > mb_strlen((string) $b)) ? -1 : 1;
         });
 
         return $lines[0];

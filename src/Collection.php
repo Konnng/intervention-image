@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image;
 
 use Intervention\Image\Exceptions\RuntimeException;
@@ -8,14 +10,11 @@ use ArrayIterator;
 use Countable;
 use Traversable;
 use IteratorAggregate;
-use RecursiveIteratorIterator;
-use RecursiveArrayIterator;
 
 class Collection implements CollectionInterface, IteratorAggregate, Countable
 {
     public function __construct(protected array $items = [])
     {
-        //
     }
 
     /**
@@ -27,6 +26,11 @@ class Collection implements CollectionInterface, IteratorAggregate, Countable
     public static function create(array $items = []): self
     {
         return new self($items);
+    }
+
+    public function has(int|string $key): bool
+    {
+        return array_key_exists($key, $this->items);
     }
 
     /**
@@ -72,7 +76,7 @@ class Collection implements CollectionInterface, IteratorAggregate, Countable
      *
      * @return mixed
      */
-    public function first()
+    public function first(): mixed
     {
         if ($item = reset($this->items)) {
             return $item;
@@ -86,7 +90,7 @@ class Collection implements CollectionInterface, IteratorAggregate, Countable
      *
      * @return mixed
      */
-    public function last()
+    public function last(): mixed
     {
         if ($item = end($this->items)) {
             return $item;
@@ -96,33 +100,59 @@ class Collection implements CollectionInterface, IteratorAggregate, Countable
     }
 
     /**
-     * Return item with given key
+     * Return item at given position starting at 0
      *
      * @param  integer $key
      * @return mixed
      */
-    public function get(int $key = 0, $default = null)
+    public function getAtPosition(int $key = 0, $default = null): mixed
     {
-        if (! array_key_exists($key, $this->items)) {
+        if ($this->count() == 0) {
             return $default;
         }
 
-        return $this->items[$key];
-    }
-
-    public function has(int $key): bool
-    {
-        return array_key_exists($key, $this->items);
-    }
-
-    public function query(string $query, $default = null)
-    {
-        $items = $this->getItemsFlat();
-        if (!array_key_exists($query, $items)) {
+        $positions = array_values($this->items);
+        if (! array_key_exists($key, $positions)) {
             return $default;
         }
 
-        return $items[$query];
+        return $positions[$key];
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see CollectionInterface::get()
+     */
+    public function get(int|string $query, $default = null): mixed
+    {
+        if ($this->count() == 0) {
+            return $default;
+        }
+
+        if (is_int($query) && array_key_exists($query, $this->items)) {
+            return $this->items[$query];
+        }
+
+        if (is_string($query) && strpos($query, '.') === false) {
+            return array_key_exists($query, $this->items) ? $this->items[$query] : $default;
+        }
+
+        $query = explode('.', (string) $query);
+
+        $result = $default;
+        $items = $this->items;
+        foreach ($query as $key) {
+            if (!is_array($items) || !array_key_exists($key, $items)) {
+                $result = $default;
+                break;
+            }
+
+            $result = $items[$key];
+            $items = $result;
+        }
+
+        return $result;
     }
 
     public function map(callable $callback): self
@@ -134,34 +164,46 @@ class Collection implements CollectionInterface, IteratorAggregate, Countable
         return new self($items);
     }
 
-    public function pushEach(array $data, ?callable $callback = null): CollectionInterface
+    /**
+     * Run callback on each item of the collection an remove it if it does not return true
+     *
+     * @param callable $callback
+     * @return Collection
+     */
+    public function filter(callable $callback): self
     {
-        if (! is_iterable($data)) {
-            throw new RuntimeException('Unable to iterate given data.');
-        }
+        $items = array_filter($this->items, function ($item) use ($callback) {
+            return $callback($item);
+        });
 
-        foreach ($data as $item) {
-            $this->push(is_callable($callback) ? $callback($item) : $item);
-        }
+        return new self($items);
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see CollectionInterface::empty()
+     */
+    public function empty(): CollectionInterface
+    {
+        $this->items = [];
 
         return $this;
     }
 
-    private function getItemsFlat(): array
+    /**
+     * {@inheritdoc}
+     *
+     * @see CollectionInterface::slice()
+     */
+    public function slice(int $offset, ?int $length = null): CollectionInterface
     {
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveArrayIterator($this->items)
-        );
-
-        $items = [];
-        foreach ($iterator as $value) {
-            $keys = [];
-            foreach (range(0, $iterator->getDepth()) as $depth) {
-                $keys[] = $iterator->getSubIterator($depth)->key();
-            }
-            $items[join('.', $keys)] = $value;
+        if ($offset >= count($this->items)) {
+            throw new RuntimeException('Offset exceeds the maximum value.');
         }
 
-        return $items;
+        $this->items = array_slice($this->items, $offset, $length);
+
+        return $this;
     }
 }

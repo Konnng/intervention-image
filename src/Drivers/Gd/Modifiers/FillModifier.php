@@ -1,58 +1,64 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Gd\Modifiers;
 
+use Intervention\Image\Drivers\DriverSpecialized;
 use Intervention\Image\Drivers\Gd\Frame;
-use Intervention\Image\Geometry\Point;
-use Intervention\Image\Interfaces\ColorInterface;
 use Intervention\Image\Interfaces\ImageInterface;
+use Intervention\Image\Geometry\Point;
 use Intervention\Image\Interfaces\ModifierInterface;
 
-class FillModifier implements ModifierInterface
+/**
+ * @method bool hasPosition()
+ * @property mixed $color
+ * @property null|Point $position
+ */
+class FillModifier extends DriverSpecialized implements ModifierInterface
 {
-    public function __construct(protected ColorInterface $color, protected ?Point $position = null)
-    {
-        //
-    }
-
     public function apply(ImageInterface $image): ImageInterface
     {
+        $color = $this->color($image);
+
         foreach ($image as $frame) {
             if ($this->hasPosition()) {
-                $this->floodFillWithColor($frame);
+                $this->floodFillWithColor($frame, $color);
             } else {
-                $this->fillAllWithColor($frame);
+                $this->fillAllWithColor($frame, $color);
             }
         }
 
         return $image;
     }
 
-    protected function floodFillWithColor(Frame $frame): void
+    private function color(ImageInterface $image): int
+    {
+        return $this->driver()->colorProcessor($image->colorspace())->colorToNative(
+            $this->driver()->handleInput($this->color)
+        );
+    }
+
+    private function floodFillWithColor(Frame $frame, int $color): void
     {
         imagefill(
-            $frame->getCore(),
-            $this->position->getX(),
-            $this->position->getY(),
-            $this->color->toInt()
+            $frame->native(),
+            $this->position->x(),
+            $this->position->y(),
+            $color
         );
     }
 
-    protected function fillAllWithColor(Frame $frame): void
+    private function fillAllWithColor(Frame $frame, int $color): void
     {
-        imagealphablending($frame->getCore(), true);
+        imagealphablending($frame->native(), true);
         imagefilledrectangle(
-            $frame->getCore(),
+            $frame->native(),
             0,
             0,
-            $frame->getSize()->getWidth() - 1,
-            $frame->getSize()->getHeight() - 1,
-            $this->color->toInt()
+            $frame->size()->width() - 1,
+            $frame->size()->height() - 1,
+            $color
         );
-    }
-
-    protected function hasPosition(): bool
-    {
-        return !empty($this->position);
     }
 }

@@ -1,14 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Imagick\Modifiers;
 
 use Intervention\Image\Interfaces\ImageInterface;
 use Intervention\Image\Interfaces\SizeInterface;
 
+/**
+ * @property int $width
+ * @property int $height
+ */
 class ScaleDownModifier extends ResizeModifier
 {
     protected function getAdjustedSize(ImageInterface $image): SizeInterface
     {
-        return $image->getSize()->scaleDown($this->width, $this->height);
+        return $image->size()->scaleDown($this->width, $this->height);
     }
 }

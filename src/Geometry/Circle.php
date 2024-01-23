@@ -1,23 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Geometry;
+
+use Intervention\Image\Interfaces\PointInterface;
 
 class Circle extends Ellipse
 {
+    /**
+     * Create new Circle instance
+     *
+     * @param int $diameter
+     * @param PointInterface $pivot
+     * @return void
+     */
     public function __construct(
         int $diameter,
-        protected ?Point $pivot = null
+        PointInterface $pivot = new Point()
     ) {
-        $this->setWidth($diameter);
-        $this->setHeight($diameter);
-        $this->pivot = $pivot ? $pivot : new Point();
+        parent::__construct($diameter, $diameter, $pivot);
     }
 
-    public function diameter(int $diameter): self
-    {
-        return $this->setDiameter($diameter);
-    }
-
+    /**
+     * Set diameter of circle
+     *
+     * @param int $diameter
+     * @return Circle
+     */
     public function setDiameter(int $diameter): self
     {
         $this->setWidth($diameter);
@@ -26,23 +36,34 @@ class Circle extends Ellipse
         return $this;
     }
 
-    public function getDiameter(): int
+    /**
+     * Get diameter of circle
+     *
+     * @return int
+     */
+    public function diameter(): int
     {
-        return $this->diameter;
+        return $this->width();
     }
 
-    public function radius(int $radius): self
-    {
-        return $this->setRadius($radius);
-    }
-
+    /**
+     * Set radius of circle
+     *
+     * @param int $radius
+     * @return Circle
+     */
     public function setRadius(int $radius): self
     {
-        return $this->diameter(intval($radius * 2));
+        return $this->setDiameter(intval($radius * 2));
     }
 
-    public function getRadius(): int
+    /**
+     * Get radius of circle
+     *
+     * @return int
+     */
+    public function radius(): int
     {
-        return intval($this->diameter / 2);
+        return intval(round($this->diameter() / 2));
     }
 }

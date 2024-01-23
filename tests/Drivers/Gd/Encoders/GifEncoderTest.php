@@ -1,21 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Tests\Drivers\Gd\Encoders;
 
-use Intervention\Image\Collection;
-use Intervention\Image\Drivers\Gd\Encoders\GifEncoder;
+use Intervention\Image\Drivers\Gd\Core;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Encoders\GifEncoder;
 use Intervention\Image\Drivers\Gd\Frame;
-use Intervention\Image\Drivers\Gd\Image;
+use Intervention\Image\Image;
 use Intervention\Image\Tests\TestCase;
-use Intervention\MimeSniffer\MimeSniffer;
-use Intervention\MimeSniffer\Types\ImageGif;
+use Intervention\Image\Tests\Traits\CanCreateGdTestImage;
 
 /**
  * @requires extension gd
+ * @covers \Intervention\Image\Encoders\GifEncoder
  * @covers \Intervention\Image\Drivers\Gd\Encoders\GifEncoder
  */
 class GifEncoderTest extends TestCase
 {
+    use CanCreateGdTestImage;
+
     protected function getTestImage(): Image
     {
         $gd1 = imagecreatetruecolor(30, 20);
@@ -31,7 +36,10 @@ class GifEncoderTest extends TestCase
         $frame3 = new Frame($gd3);
         $frame3->setDelay(1);
 
-        return new Image(new Collection([$frame1, $frame2, $frame3]));
+        return new Image(
+            new Driver(),
+            new Core([$frame1, $frame2, $frame3])
+        );
     }
 
     public function testEncode(): void
@@ -39,6 +47,6 @@ class GifEncoderTest extends TestCase
         $image = $this->getTestImage();
         $encoder = new GifEncoder();
         $result = $encoder->encode($image);
-        $this->assertTrue(MimeSniffer::createFromString($result)->matches(new ImageGif()));
+        $this->assertMediaType('image/gif', (string) $result);
     }
 }

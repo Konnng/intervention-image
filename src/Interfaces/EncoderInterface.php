@@ -1,10 +1,16 @@
 <?php
 
-namespace Intervention\Image\Interfaces;
+declare(strict_types=1);
 
-use Intervention\Image\EncodedImage;
+namespace Intervention\Image\Interfaces;
 
 interface EncoderInterface
 {
-    public function encode(ImageInterface $image): EncodedImage;
+    /**
+     * Encode given image
+     *
+     * @param ImageInterface $image
+     * @return EncodedImageInterface
+     */
+    public function encode(ImageInterface $image): EncodedImageInterface;
 }

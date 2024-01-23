@@ -1,45 +1,58 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Imagick\Modifiers;
 
 use ImagickDraw;
-use Intervention\Image\Drivers\Abstract\Modifiers\AbstractDrawModifier;
-use Intervention\Image\Interfaces\DrawableInterface;
+use Intervention\Image\Drivers\AbstractDrawModifier;
+use Intervention\Image\Geometry\Polygon;
 use Intervention\Image\Interfaces\ImageInterface;
-use Intervention\Image\Interfaces\ModifierInterface;
+use Intervention\Image\Interfaces\ColorInterface;
 
-class DrawPolygonModifier extends AbstractDrawModifier implements ModifierInterface
+/**
+ * @method Point position()
+ * @method ColorInterface backgroundColor()
+ * @method ColorInterface borderColor()
+ * @property Polygon $drawable
+ */
+class DrawPolygonModifier extends AbstractDrawModifier
 {
-    public function __construct(
-        protected DrawableInterface $drawable
-    ) {
-        //
-    }
-
     public function apply(ImageInterface $image): ImageInterface
     {
         $drawing = new ImagickDraw();
-        if ($this->polygon()->hasBackgroundColor()) {
-            $drawing->setFillColor($this->getBackgroundColor()->getPixel());
+
+        if ($this->drawable->hasBackgroundColor()) {
+            $background_color = $this->driver()->colorProcessor($image->colorspace())->colorToNative(
+                $this->backgroundColor()
+            );
+
+            $drawing->setFillColor($background_color);
         }
 
-        if ($this->polygon()->hasBorder()) {
-            $drawing->setStrokeColor($this->getBorderColor()->getPixel());
-            $drawing->setStrokeWidth($this->polygon()->getBorderSize());
+        if ($this->drawable->hasBorder()) {
+            $border_color = $this->driver()->colorProcessor($image->colorspace())->colorToNative(
+                $this->borderColor()
+            );
+
+            $drawing->setStrokeColor($border_color);
+            $drawing->setStrokeWidth($this->drawable->borderSize());
         }
 
         $drawing->polygon($this->points());
 
-        return $image->eachFrame(function ($frame) use ($drawing) {
-            $frame->getCore()->drawImage($drawing);
-        });
+        foreach ($image as $frame) {
+            $frame->native()->drawImage($drawing);
+        }
+
+        return $image;
     }
 
     private function points(): array
     {
         $points = [];
-        foreach ($this->polygon() as $point) {
-            $points[] = ['x' => $point->getX(), 'y' => $point->getY()];
+        foreach ($this->drawable as $point) {
+            $points[] = ['x' => $point->x(), 'y' => $point->y()];
         }
 
         return $points;

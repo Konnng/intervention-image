@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Tests\Drivers\Imagick\Encoders;
 
 use Imagick;
 use ImagickPixel;
-use Intervention\Image\Drivers\Imagick\Encoders\JpegEncoder;
-use Intervention\Image\Drivers\Imagick\Image;
+use Intervention\Image\Drivers\Imagick\Core;
+use Intervention\Image\Drivers\Imagick\Driver;
+use Intervention\Image\Encoders\JpegEncoder;
+use Intervention\Image\Image;
 use Intervention\Image\Tests\TestCase;
-use Intervention\MimeSniffer\MimeSniffer;
-use Intervention\MimeSniffer\Types\ImageJpeg;
 
 /**
  * @requires extension imagick
+ * @covers \Intervention\Image\Encoders\JpegEncoder
  * @covers \Intervention\Image\Drivers\Imagick\Encoders\JpegEncoder
  */
 class JpegEncoderTest extends TestCase
@@ -21,7 +24,10 @@ class JpegEncoderTest extends TestCase
         $imagick = new Imagick();
         $imagick->newImage(3, 2, new ImagickPixel('red'), 'png');
 
-        return new Image($imagick);
+        return new Image(
+            new Driver(),
+            new Core($imagick)
+        );
     }
 
     public function testEncode(): void
@@ -29,6 +35,6 @@ class JpegEncoderTest extends TestCase
         $image = $this->getTestImage();
         $encoder = new JpegEncoder(75);
         $result = $encoder->encode($image);
-        $this->assertTrue(MimeSniffer::createFromString($result)->matches(new ImageJpeg()));
+        $this->assertMediaType('image/jpeg', (string) $result);
     }
 }

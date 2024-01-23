@@ -1,29 +1,120 @@
 <?php
 
-namespace Intervention\Image\Interfaces;
+declare(strict_types=1);
 
-use Intervention\Image\Geometry\Polygon;
-use Intervention\Image\Interfaces\ColorInterface;
+namespace Intervention\Image\Interfaces;
 
 interface FontInterface
 {
-    public function color($color): self;
-    public function getColor(): ?ColorInterface;
-    public function size(float $size): self;
-    public function getSize(): float;
-    public function angle(float $angle): self;
-    public function getAngle(): float;
-    public function filename(string $filename): self;
-    public function getFilename(): ?string;
+    /**
+     * Set color of font
+     *
+     * @param mixed $color
+     * @return FontInterface
+     */
+    public function setColor(mixed $color): self;
+
+    /**
+     * Get color of font
+     *
+     * @return mixed
+     */
+    public function color(): mixed;
+
+    /**
+     * Set font size
+     *
+     * @param float $size
+     * @return FontInterface
+     */
+    public function setSize(float $size): self;
+
+    /**
+     * Get font size
+     *
+     * @return float
+     */
+    public function size(): float;
+
+    /**
+     * Set rotation angle of font
+     *
+     * @param float $angle
+     * @return FontInterface
+     */
+    public function setAngle(float $angle): self;
+
+    /**
+     * Get rotation angle of font
+     *
+     * @return float
+     */
+    public function angle(): float;
+
+    /**
+     * Set font filename
+     *
+     * @param string $filename
+     * @return FontInterface
+     */
+    public function setFilename(string $filename): self;
+
+    /**
+     * Get font filename
+     *
+     * @return null|string
+     */
+    public function filename(): ?string;
+
+    /**
+     * Determine if font has a corresponding filename
+     *
+     * @return bool
+     */
     public function hasFilename(): bool;
-    public function align(string $align): self;
-    public function getAlign(): string;
-    public function valign(string $align): self;
-    public function getValign(): string;
-    public function lineHeight(float $value): self;
-    public function getLineHeight(): float;
-    public function leadingInPixels(): int;
-    public function fontSizeInPixels(): int;
-    public function capHeight(): int;
-    public function getBoxSize(string $text): Polygon;
+
+    /**
+     * Set horizontal alignment of font
+     *
+     * @param string $align
+     * @return FontInterface
+     */
+    public function setAlignment(string $align): self;
+
+    /**
+     * Get horizontal alignment of font
+     *
+     * @return string
+     */
+    public function alignment(): string;
+
+    /**
+     * Set vertical alignment of font
+     *
+     * @param string $align
+     * @return FontInterface
+     */
+    public function setValignment(string $align): self;
+
+    /**
+     * Get vertical alignment of font
+     *
+     * @return string
+     */
+    public function valignment(): string;
+
+    /**
+     * Set typographical line height
+     *
+     * @param float $value
+     * @return FontInterface
+     */
+    public function setLineHeight(float $value): self;
+
+    /**
+     * Get line height of font
+     *
+     * @return float
+     */
+    public function lineHeight(): float;
 }

@@ -1,23 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Gd\Encoders;
 
-use Intervention\Image\Drivers\Abstract\Encoders\AbstractEncoder;
+use Intervention\Image\Drivers\DriverSpecializedEncoder;
 use Intervention\Image\EncodedImage;
-use Intervention\Image\Interfaces\EncoderInterface;
 use Intervention\Image\Interfaces\ImageInterface;
 
-class WebpEncoder extends AbstractEncoder implements EncoderInterface
+/**
+ * @property int $quality
+ */
+class WebpEncoder extends DriverSpecializedEncoder
 {
-    public function __construct(int $quality)
-    {
-        $this->quality = $quality;
-    }
-
     public function encode(ImageInterface $image): EncodedImage
     {
-        $data = $this->getBuffered(function () use ($image) {
-            imagewebp($image->getFrame()->getCore(), null, $this->quality);
+        $quality = $this->quality === 100 ? IMG_WEBP_LOSSLESS : $this->quality;
+        $data = $this->getBuffered(function () use ($image, $quality) {
+            imagewebp($image->core()->native(), null, $quality);
         });
 
         return new EncodedImage($data, 'image/webp');

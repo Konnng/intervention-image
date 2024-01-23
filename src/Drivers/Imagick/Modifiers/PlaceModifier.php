@@ -1,55 +1,47 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Imagick\Modifiers;
 
 use Imagick;
-use Intervention\Image\Drivers\Imagick\Image;
-use Intervention\Image\Geometry\Point;
+use Intervention\Image\Drivers\DriverSpecialized;
 use Intervention\Image\Interfaces\ImageInterface;
 use Intervention\Image\Interfaces\ModifierInterface;
-use Intervention\Image\Interfaces\PointInterface;
-use Intervention\Image\Traits\CanResolveDriverClass;
 
-class PlaceModifier implements ModifierInterface
+/**
+ * @method mixed getPosition(ImageInterface $image, ImageInterface $watermark)
+ * @property mixed $element
+ * @property string $position
+ * @property int $offset_x
+ * @property int $offset_y
+ * @property int $opacity
+ */
+class PlaceModifier extends DriverSpecialized implements ModifierInterface
 {
-    use CanResolveDriverClass;
-
-    public function __construct(
-        protected $element,
-        protected string $position,
-        protected int $offset_x,
-        protected int $offset_y
-    ) {
-        //
-    }
-
     public function apply(ImageInterface $image): ImageInterface
     {
-        $watermark = $this->decodeWatermark();
+        $watermark = $this->driver()->handleInput($this->element);
         $position = $this->getPosition($image, $watermark);
 
+        // set opacity of watermark
+        if ($this->opacity < 100) {
+            $watermark->core()->native()->evaluateImage(
+                Imagick::EVALUATE_DIVIDE,
+                $this->opacity > 0 ? (100 / $this->opacity) : 1000,
+                Imagick::CHANNEL_ALPHA,
+            );
+        }
+
         foreach ($image as $frame) {
-            $frame->getCore()->compositeImage(
-                $watermark->getFrame()->getCore(),
+            $frame->native()->compositeImage(
+                $watermark->core()->native(),
                 Imagick::COMPOSITE_DEFAULT,
-                $position->getX(),
-                $position->getY()
+                $position->x(),
+                $position->y()
             );
         }
 
         return $image;
-    }
-
-    protected function decodeWatermark(): Image
-    {
-        return $this->resolveDriverClass('InputHandler')->handle($this->element);
-    }
-
-    protected function getPosition(ImageInterface $image, Image $watermark): PointInterface
-    {
-        $image_size = $image->getSize()->movePivot($this->position, $this->offset_x, $this->offset_y);
-        $watermark_size = $watermark->getSize()->movePivot($this->position);
-
-        return $image_size->getRelativePositionTo($watermark_size);
     }
 }

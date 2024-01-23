@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Geometry;
 
 use ArrayAccess;
@@ -10,19 +12,41 @@ use IteratorAggregate;
 use Intervention\Image\Geometry\Traits\HasBackgroundColor;
 use Intervention\Image\Geometry\Traits\HasBorder;
 use Intervention\Image\Interfaces\DrawableInterface;
+use Intervention\Image\Interfaces\PointInterface;
 
 class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInterface
 {
     use HasBorder;
     use HasBackgroundColor;
 
+    /**
+     * Create new polygon instance
+     *
+     * @param array $points
+     * @param PointInterface $pivot
+     * @return void
+     */
     public function __construct(
         protected array $points = [],
-        protected ?Point $pivot = null
+        protected PointInterface $pivot = new Point()
     ) {
-        $this->pivot = $pivot ? $pivot : new Point();
     }
 
+    /**
+     * {@inheritdoc}
+     *
+     * @see DrawableInterface::position()
+     */
+    public function position(): PointInterface
+    {
+        return $this->pivot;
+    }
+
+    /**
+     * Implement iteration through all points of polygon
+     *
+     * @return Traversable
+     */
     public function getIterator(): Traversable
     {
         return new ArrayIterator($this->points);
@@ -31,9 +55,9 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
     /**
      * Return current pivot point
      *
-     * @return Point
+     * @return PointInterface
      */
-    public function getPivot(): Point
+    public function pivot(): PointInterface
     {
         return $this->pivot;
     }
@@ -106,7 +130,7 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
      * @param mixed $offset
      * @return Point
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->points[$offset];
     }
@@ -147,21 +171,14 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
         return $this;
     }
 
-    public function point(int $x, int $y): self
-    {
-        $this->addPoint(new Point($x, $y));
-
-        return $this;
-    }
-
     /**
      * Calculate total horizontal span of polygon
      *
      * @return int
      */
-    public function getWidth(): int
+    public function width(): int
     {
-        return abs($this->getMostLeftPoint()->getX() - $this->getMostRightPoint()->getX());
+        return abs($this->mostLeftPoint()->x() - $this->mostRightPoint()->x());
     }
 
     /**
@@ -169,9 +186,9 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
      *
      * @return int
      */
-    public function getHeight(): int
+    public function height(): int
     {
-        return abs($this->getMostBottomPoint()->getY() - $this->getMostTopPoint()->getY());
+        return abs($this->mostBottomPoint()->y() - $this->mostTopPoint()->y());
     }
 
     /**
@@ -179,7 +196,7 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
      *
      * @return Point
      */
-    public function getMostLeftPoint(): Point
+    public function mostLeftPoint(): Point
     {
         $points = [];
         foreach ($this->points as $point) {
@@ -187,10 +204,10 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
         }
 
         usort($points, function ($a, $b) {
-            if ($a->getX() === $b->getX()) {
+            if ($a->x() === $b->x()) {
                 return 0;
             }
-            return ($a->getX() < $b->getX()) ? -1 : 1;
+            return ($a->x() < $b->x()) ? -1 : 1;
         });
 
         return $points[0];
@@ -201,7 +218,7 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
      *
      * @return Point
      */
-    public function getMostRightPoint(): Point
+    public function mostRightPoint(): Point
     {
         $points = [];
         foreach ($this->points as $point) {
@@ -209,10 +226,10 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
         }
 
         usort($points, function ($a, $b) {
-            if ($a->getX() === $b->getX()) {
+            if ($a->x() === $b->x()) {
                 return 0;
             }
-            return ($a->getX() > $b->getX()) ? -1 : 1;
+            return ($a->x() > $b->x()) ? -1 : 1;
         });
 
         return $points[0];
@@ -223,7 +240,7 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
      *
      * @return Point
      */
-    public function getMostTopPoint(): Point
+    public function mostTopPoint(): Point
     {
         $points = [];
         foreach ($this->points as $point) {
@@ -231,10 +248,10 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
         }
 
         usort($points, function ($a, $b) {
-            if ($a->getY() === $b->getY()) {
+            if ($a->y() === $b->y()) {
                 return 0;
             }
-            return ($a->getY() > $b->getY()) ? -1 : 1;
+            return ($a->y() > $b->y()) ? -1 : 1;
         });
 
         return $points[0];
@@ -245,7 +262,7 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
      *
      * @return Point
      */
-    public function getMostBottomPoint(): Point
+    public function mostBottomPoint(): Point
     {
         $points = [];
         foreach ($this->points as $point) {
@@ -253,25 +270,25 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
         }
 
         usort($points, function ($a, $b) {
-            if ($a->getY() === $b->getY()) {
+            if ($a->y() === $b->y()) {
                 return 0;
             }
-            return ($a->getY() < $b->getY()) ? -1 : 1;
+            return ($a->y() < $b->y()) ? -1 : 1;
         });
 
         return $points[0];
     }
 
     /**
-     * Create and return point in absolute center of the polygon
+     * Return point in absolute center of the polygon
      *
      * @return Point
      */
-    public function getCenterPoint(): Point
+    public function centerPoint(): Point
     {
         return new Point(
-            $this->getMostRightPoint()->getX() - (intval(round($this->getWidth() / 2))),
-            $this->getMostTopPoint()->getY() - (intval(round($this->getHeight() / 2)))
+            $this->mostRightPoint()->x() - (intval(round($this->width() / 2))),
+            $this->mostTopPoint()->y() - (intval(round($this->height() / 2)))
         );
     }
 
@@ -286,21 +303,23 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
         switch (strtolower($position)) {
             case 'center':
             case 'middle':
-                $diff = ($this->getCenterPoint()->getX() - $this->getPivot()->getX());
+                $diff = ($this->centerPoint()->x() - $this->pivot()->x());
                 break;
 
             case 'right':
-                $diff = ($this->getMostRightPoint()->getX() - $this->getPivot()->getX());
+                $diff = ($this->mostRightPoint()->x() - $this->pivot()->x());
                 break;
 
             default:
             case 'left':
-                $diff = ($this->getMostLeftPoint()->getX() - $this->getPivot()->getX());
+                $diff = ($this->mostLeftPoint()->x() - $this->pivot()->x());
                 break;
         }
 
         foreach ($this->points as $point) {
-            $point->setX($point->getX() - $diff);
+            $point->setX(
+                intval($point->x() - $diff)
+            );
         }
 
         return $this;
@@ -317,21 +336,23 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
         switch (strtolower($position)) {
             case 'center':
             case 'middle':
-                $diff = ($this->getCenterPoint()->getY() - $this->getPivot()->getY());
+                $diff = ($this->centerPoint()->y() - $this->pivot()->y());
                 break;
 
             case 'top':
-                $diff = ($this->getMostTopPoint()->getY() - $this->getPivot()->getY()) - $this->getHeight();
+                $diff = ($this->mostTopPoint()->y() - $this->pivot()->y()) - $this->height();
                 break;
 
             default:
             case 'bottom':
-                $diff = ($this->getMostBottomPoint()->getY() - $this->getPivot()->getY()) + $this->getHeight();
+                $diff = ($this->mostBottomPoint()->y() - $this->pivot()->y()) + $this->height();
                 break;
         }
 
         foreach ($this->points as $point) {
-            $point->setY($point->getY() - $diff);
+            $point->setY(
+                intval($point->y() - $diff),
+            );
         }
 
         return $this;
@@ -350,16 +371,24 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
 
         foreach ($this->points as $point) {
             // translate point to pivot
-            $point->setX($point->getX() - $this->getPivot()->getX());
-            $point->setY($point->getY() - $this->getPivot()->getY());
+            $point->setX(
+                intval($point->x() - $this->pivot()->x()),
+            );
+            $point->setY(
+                intval($point->y() - $this->pivot()->y()),
+            );
 
             // rotate point
-            $x = $point->getX() * $cos - $point->getY() * $sin;
-            $y = $point->getX() * $sin + $point->getY() * $cos;
+            $x = $point->x() * $cos - $point->y() * $sin;
+            $y = $point->x() * $sin + $point->y() * $cos;
 
             // translate point back
-            $point->setX($x + $this->getPivot()->getX());
-            $point->setY($y + $this->getPivot()->getY());
+            $point->setX(
+                intval($x + $this->pivot()->x()),
+            );
+            $point->setY(
+                intval($y + $this->pivot()->y()),
+            );
         }
 
         return $this;
@@ -404,8 +433,8 @@ class Polygon implements IteratorAggregate, Countable, ArrayAccess, DrawableInte
     {
         $coordinates = [];
         foreach ($this->points as $point) {
-            $coordinates[] = $point->getX();
-            $coordinates[] = $point->getY();
+            $coordinates[] = $point->x();
+            $coordinates[] = $point->y();
         }
 
         return $coordinates;

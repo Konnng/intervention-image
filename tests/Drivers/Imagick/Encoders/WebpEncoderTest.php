@@ -6,14 +6,16 @@ namespace Intervention\Image\Tests\Drivers\Imagick\Encoders;
 
 use Imagick;
 use ImagickPixel;
-use Intervention\Image\Drivers\Imagick\Encoders\WebpEncoder;
-use Intervention\Image\Drivers\Imagick\Image;
-use Intervention\MimeSniffer\MimeSniffer;
-use Intervention\MimeSniffer\Types\ImageWebp;
-use PHPUnit\Framework\TestCase;
+use Intervention\Image\Drivers\Imagick\Core;
+use Intervention\Image\Drivers\Imagick\Driver;
+use Intervention\Image\Encoders\WebpEncoder;
+use Intervention\Image\Image;
+use Intervention\Image\Tests\TestCase;
 
 /**
  * @requires extension imagick
+ * @covers \Intervention\Image\Encoders\WebpEncoder
+ * @covers \Intervention\Image\Drivers\Imagick\Encoders\WebpEncoder
  */
 final class WebpEncoderTest extends TestCase
 {
@@ -22,7 +24,10 @@ final class WebpEncoderTest extends TestCase
         $imagick = new Imagick();
         $imagick->newImage(3, 2, new ImagickPixel('red'), 'png');
 
-        return new Image($imagick);
+        return new Image(
+            new Driver(),
+            new Core($imagick)
+        );
     }
 
     public function testEncode(): void
@@ -30,6 +35,6 @@ final class WebpEncoderTest extends TestCase
         $image = $this->getTestImage();
         $encoder = new WebpEncoder(75);
         $result = $encoder->encode($image);
-        $this->assertTrue(MimeSniffer::createFromString((string) $result)->matches(new ImageWebp()));
+        $this->assertMediaType('image/webp', (string) $result);
     }
 }

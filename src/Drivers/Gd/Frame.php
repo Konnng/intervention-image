@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Gd;
 
 use GdImage;
-use Intervention\Image\Collection;
 use Intervention\Image\Geometry\Rectangle;
+use Intervention\Image\Image;
+use Intervention\Image\Interfaces\DriverInterface;
 use Intervention\Image\Interfaces\FrameInterface;
 use Intervention\Image\Interfaces\ImageInterface;
 use Intervention\Image\Interfaces\SizeInterface;
@@ -12,7 +15,7 @@ use Intervention\Image\Interfaces\SizeInterface;
 class Frame implements FrameInterface
 {
     public function __construct(
-        protected GdImage $core,
+        protected GdImage $native,
         protected float $delay = 0,
         protected int $dispose = 1,
         protected int $offset_left = 0,
@@ -21,29 +24,29 @@ class Frame implements FrameInterface
         //
     }
 
-    public function setCore($core): FrameInterface
+    public function toImage(DriverInterface $driver): ImageInterface
     {
-        $this->core = $core;
+        return new Image($driver, new Core([$this]));
+    }
+
+    public function setNative($native): FrameInterface
+    {
+        $this->native = $native;
 
         return $this;
     }
 
-    public function getCore(): GdImage
+    public function native(): GdImage
     {
-        return $this->core;
+        return $this->native;
     }
 
-    public function unsetCore(): void
+    public function size(): SizeInterface
     {
-        unset($this->core);
+        return new Rectangle(imagesx($this->native), imagesy($this->native));
     }
 
-    public function getSize(): SizeInterface
-    {
-        return new Rectangle(imagesx($this->core), imagesy($this->core));
-    }
-
-    public function getDelay(): float
+    public function delay(): float
     {
         return $this->delay;
     }
@@ -55,7 +58,7 @@ class Frame implements FrameInterface
         return $this;
     }
 
-    public function getDispose(): int
+    public function dispose(): int
     {
         return $this->dispose;
     }
@@ -75,7 +78,7 @@ class Frame implements FrameInterface
         return $this;
     }
 
-    public function getOffsetLeft(): int
+    public function offsetLeft(): int
     {
         return $this->offset_left;
     }
@@ -87,7 +90,7 @@ class Frame implements FrameInterface
         return $this;
     }
 
-    public function getOffsetTop(): int
+    public function offsetTop(): int
     {
         return $this->offset_top;
     }
@@ -99,8 +102,13 @@ class Frame implements FrameInterface
         return $this;
     }
 
-    public function toImage(): ImageInterface
+    /**
+     * This workaround helps cloning GdImages which is currently not possible.
+     *
+     * @return void
+     */
+    public function __clone(): void
     {
-        return new Image(new Collection([$this]));
+        $this->native = Cloner::clone($this->native);
     }
 }

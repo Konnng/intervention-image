@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Imagick\Decoders;
 
 use Exception;
@@ -10,20 +12,30 @@ use Intervention\Image\Interfaces\ImageInterface;
 
 class FilePathImageDecoder extends BinaryImageDecoder implements DecoderInterface
 {
-    public function decode($input): ImageInterface|ColorInterface
+    public function decode(mixed $input): ImageInterface|ColorInterface
     {
-        if (! is_string($input)) {
+        if (!is_string($input)) {
+            throw new DecoderException('Unable to decode input');
+        }
+
+        if (strlen($input) > PHP_MAXPATHLEN) {
             throw new DecoderException('Unable to decode input');
         }
 
         try {
-            if (! @is_file($input)) {
+            if (!@is_file($input)) {
                 throw new DecoderException('Unable to decode input');
             }
-        } catch (Exception $e) {
+        } catch (Exception) {
             throw new DecoderException('Unable to decode input');
         }
 
-        return parent::decode(file_get_contents($input));
+        // decode image
+        $image = parent::decode(file_get_contents($input));
+
+        // set file path on origin
+        $image->origin()->setFilePath($input);
+
+        return $image;
     }
 }

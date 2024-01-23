@@ -4,24 +4,28 @@ declare(strict_types=1);
 
 namespace Intervention\Image\Tests\Drivers\Gd\Encoders;
 
-use Intervention\Image\Collection;
-use Intervention\Image\Drivers\Gd\Encoders\WebpEncoder;
+use Intervention\Image\Drivers\Gd\Core;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Encoders\WebpEncoder;
 use Intervention\Image\Drivers\Gd\Frame;
-use Intervention\Image\Drivers\Gd\Image;
-use Intervention\MimeSniffer\MimeSniffer;
-use Intervention\MimeSniffer\Types\ImageWebp;
-use PHPUnit\Framework\TestCase;
+use Intervention\Image\Image;
+use Intervention\Image\Tests\TestCase;
 
 /**
  * @requires extension gd
+ * @covers \Intervention\Image\Encoders\WebpEncoder
+ * @covers \Intervention\Image\Drivers\Gd\Encoders\WebpEncoder
  */
 final class WebpEncoderTest extends TestCase
 {
     protected function getTestImage(): Image
     {
-        $frame = new Frame(imagecreatetruecolor(3, 2));
-
-        return new Image(new Collection([$frame]));
+        return new Image(
+            new Driver(),
+            new Core([
+                new Frame(imagecreatetruecolor(3, 2))
+            ])
+        );
     }
 
     public function testEncode(): void
@@ -29,6 +33,6 @@ final class WebpEncoderTest extends TestCase
         $image = $this->getTestImage();
         $encoder = new WebpEncoder(75);
         $result = $encoder->encode($image);
-        $this->assertTrue(MimeSniffer::createFromString((string) $result)->matches(new ImageWebp()));
+        $this->assertMediaType('image/webp', (string) $result);
     }
 }

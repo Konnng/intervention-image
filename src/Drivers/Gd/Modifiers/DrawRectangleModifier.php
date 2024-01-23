@@ -1,41 +1,57 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Drivers\Gd\Modifiers;
 
-use Intervention\Image\Drivers\Abstract\Modifiers\AbstractDrawModifier;
+use Intervention\Image\Drivers\AbstractDrawModifier;
+use Intervention\Image\Geometry\Rectangle;
+use Intervention\Image\Interfaces\ColorInterface;
 use Intervention\Image\Interfaces\ImageInterface;
-use Intervention\Image\Interfaces\ModifierInterface;
+use Intervention\Image\Geometry\Point;
 
-class DrawRectangleModifier extends AbstractDrawModifier implements ModifierInterface
+/**
+ * @method Point position()
+ * @method ColorInterface backgroundColor()
+ * @method ColorInterface borderColor()
+ * @property Rectangle $drawable
+ */
+class DrawRectangleModifier extends AbstractDrawModifier
 {
     public function apply(ImageInterface $image): ImageInterface
     {
-        $image->eachFrame(function ($frame) {
+        foreach ($image as $frame) {
             // draw background
-            if ($this->rectangle()->hasBackgroundColor()) {
+            if ($this->drawable->hasBackgroundColor()) {
+                imagealphablending($frame->native(), true);
                 imagefilledrectangle(
-                    $frame->getCore(),
-                    $this->position->getX(),
-                    $this->position->getY(),
-                    $this->position->getX() + $this->rectangle()->bottomRightPoint()->getX(),
-                    $this->position->getY() + $this->rectangle()->bottomRightPoint()->getY(),
-                    $this->getBackgroundColor()->toInt()
+                    $frame->native(),
+                    $this->position()->x(),
+                    $this->position()->y(),
+                    $this->position()->x() + $this->drawable->width(),
+                    $this->position()->y() + $this->drawable->height(),
+                    $this->driver()->colorProcessor($image->colorspace())->colorToNative(
+                        $this->backgroundColor()
+                    )
                 );
             }
 
-            if ($this->rectangle()->hasBorder()) {
-                // draw border
-                imagesetthickness($frame->getCore(), $this->rectangle()->getBorderSize());
+            // draw border
+            if ($this->drawable->hasBorder()) {
+                imagealphablending($frame->native(), true);
+                imagesetthickness($frame->native(), $this->drawable->borderSize());
                 imagerectangle(
-                    $frame->getCore(),
-                    $this->position->getX(),
-                    $this->position->getY(),
-                    $this->position->getX() + $this->rectangle()->bottomRightPoint()->getX(),
-                    $this->position->getY() + $this->rectangle()->bottomRightPoint()->getY(),
-                    $this->getBorderColor()->toInt()
+                    $frame->native(),
+                    $this->position()->x(),
+                    $this->position()->y(),
+                    $this->position()->x() + $this->drawable->width(),
+                    $this->position()->y() + $this->drawable->height(),
+                    $this->driver()->colorProcessor($image->colorspace())->colorToNative(
+                        $this->borderColor()
+                    )
                 );
             }
-        });
+        }
 
         return $image;
     }

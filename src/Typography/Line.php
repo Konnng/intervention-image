@@ -1,20 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Typography;
 
-use Intervention\Image\Interfaces\FontInterface;
 use Intervention\Image\Geometry\Point;
+use Intervention\Image\Interfaces\PointInterface;
 
 class Line
 {
-    protected $position;
-
-    public function __construct(protected string $text)
-    {
-        $this->position = new Point();
+    public function __construct(
+        protected string $text,
+        protected PointInterface $position = new Point()
+    ) {
     }
 
-    public function getPosition(): Point
+    public function position(): PointInterface
     {
         return $this->position;
     }
@@ -24,11 +25,6 @@ class Line
         $this->position = $point;
 
         return $this;
-    }
-
-    public function widthInFont(FontInterface $font): int
-    {
-        return $font->getBoxSize($this->text)->getWidth();
     }
 
     public function __toString(): string

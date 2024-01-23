@@ -1,23 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Intervention\Image\Tests\Drivers\Imagick\Encoders;
 
 use Imagick;
 use ImagickPixel;
-use Intervention\Image\Collection;
-use Intervention\Image\Drivers\Imagick\Encoders\GifEncoder;
-use Intervention\Image\Drivers\Imagick\Frame;
-use Intervention\Image\Drivers\Imagick\Image;
+use Intervention\Image\Drivers\Imagick\Core;
+use Intervention\Image\Drivers\Imagick\Driver;
+use Intervention\Image\Encoders\GifEncoder;
+use Intervention\Image\Image;
 use Intervention\Image\Tests\TestCase;
-use Intervention\MimeSniffer\MimeSniffer;
-use Intervention\MimeSniffer\Types\ImageGif;
+use Intervention\Image\Tests\Traits\CanCreateImagickTestImage;
 
 /**
  * @requires extension imagick
+ * @covers \Intervention\Image\Encoders\GifEncoder
  * @covers \Intervention\Image\Drivers\Imagick\Encoders\GifEncoder
  */
 class GifEncoderTest extends TestCase
 {
+    use CanCreateImagickTestImage;
+
     protected function getTestImage(): Image
     {
         $imagick = new Imagick();
@@ -37,7 +41,10 @@ class GifEncoderTest extends TestCase
         $frame->setImageDelay(50);
         $imagick->addImage($frame);
 
-        return new Image($imagick);
+        return new Image(
+            new Driver(),
+            new Core($imagick)
+        );
     }
 
     public function testEncode(): void
@@ -45,6 +52,6 @@ class GifEncoderTest extends TestCase
         $image = $this->getTestImage();
         $encoder = new GifEncoder();
         $result = $encoder->encode($image);
-        $this->assertTrue(MimeSniffer::createFromString($result)->matches(new ImageGif()));
+        $this->assertMediaType('image/gif', (string) $result);
     }
 }
